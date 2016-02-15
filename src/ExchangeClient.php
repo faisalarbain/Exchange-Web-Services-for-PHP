@@ -329,7 +329,7 @@ class ExchangeClient
 
             $messages[] = $newmessage;
 
-            if (++$i > $limit) {
+            if (++$i >= $limit) {
                 break;
             }
         }

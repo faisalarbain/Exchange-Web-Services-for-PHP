@@ -54,7 +54,7 @@ class ExchangeClient
      */
     private function connect()
     {
-        if ($client !== false) {
+        if ($this->client !== false) {
             return;
         }
 
@@ -63,8 +63,8 @@ class ExchangeClient
         $this->client = new NTLMSoapClient($this->wsdl, array(
             'trace' => 1,
             'exceptions' => true,
-            'login' => $user,
-            'password' => $pass,
+            'login' => $this->user,
+            'password' => $this->pass,
         ));
 
         $this->teardown();

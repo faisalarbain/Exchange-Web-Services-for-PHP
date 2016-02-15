@@ -2,6 +2,8 @@
 
 namespace ExchangeClient;
 
+use SoapClient;
+
 class NTLMSoapClient extends SoapClient
 {
     private $username;

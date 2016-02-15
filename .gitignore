@@ -1,5 +1,4 @@
 *.un~
 *.tmp
 *.swp
-
-/.DS_Store
+.DS_Store

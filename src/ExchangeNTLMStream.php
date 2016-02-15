@@ -2,6 +2,8 @@
 
 namespace ExchangeClient;
 
+use SimpleXMLElement;
+
 class ExchangeNTLMStream extends NTLMStream
 {
     protected function createBuffer($path)

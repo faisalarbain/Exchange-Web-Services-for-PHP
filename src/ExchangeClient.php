@@ -2,6 +2,9 @@
 
 namespace ExchangeClient;
 
+use Exception;
+use SoapHeader;
+
 /**
  * Exchangeclient class.
  *
@@ -641,11 +644,11 @@ class ExchangeClient
         stream_wrapper_unregister('http');
         stream_wrapper_unregister('https');
 
-        if (!stream_wrapper_register('http', 'ExchangeNTLMStream')) {
+        if (!stream_wrapper_register('http', '\ExchangeClient\ExchangeNTLMStream')) {
             throw new Exception("Failed to register protocol");
         }
 
-        if (!stream_wrapper_register('https', 'ExchangeNTLMStream')) {
+        if (!stream_wrapper_register('https', '\ExchangeClient\ExchangeNTLMStream')) {
             throw new Exception("Failed to register protocol");
         }
     }
@@ -660,15 +663,5 @@ class ExchangeClient
     {
         stream_wrapper_restore('http');
         stream_wrapper_restore('https');
-    }
-}
-
-class ImpersonationHeader
-{
-    public $ConnectingSID;
-
-    public function __construct($email)
-    {
-        $this->ConnectingSID->PrimarySmtpAddress = $email;
     }
 }

@@ -231,6 +231,7 @@ class ExchangeClient
         }
 
         if ($this->delegate != null) {
+            $FindItem->ParentFolderIds->DistinguishedFolderId->Mailbox = new stdClass();
             $FindItem->ParentFolderIds->DistinguishedFolderId->Mailbox->EmailAddress = $this->delegate;
         }
 
@@ -241,22 +242,21 @@ class ExchangeClient
             return false;
         }
 
-        $items = $response->ResponseMessages->FindItemResponseMessage->RootFolder->Items->Message;
-
-        $i = 0;
-        $messages = array();
-
-        if (count($items) == 0) {
+        // No email in that folder
+        if (!$response->ResponseMessages->FindItemResponseMessage->RootFolder->TotalItemsInView) {
             return false;
         }
-        //we didn't get anything back!
+
+        $items = $response->ResponseMessages->FindItemResponseMessage->RootFolder->Items->Message;
+
+        $messages = array();
 
         if (!is_array($items)) //if we only returned one message, then it doesn't send it as an array, just as a single object. so put it into an array so that everything works as expected.
         {
             $items = array($items);
         }
 
-        foreach ($items as $item) {
+        foreach ($items as $i => $item) {
             $GetItem = new stdClass();
             $GetItem->ItemShape = new stdClass();
 

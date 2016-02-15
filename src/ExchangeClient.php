@@ -13,11 +13,13 @@ use SoapHeader;
  */
 class ExchangeClient
 {
+    private $client = false;
 
     private $wsdl;
-    private $client;
     private $user;
     private $pass;
+    private $delegate;
+
     /**
      * The last error that occurred when communicating with the Exchange server.
      *
@@ -26,10 +28,9 @@ class ExchangeClient
      */
     public $lastError;
     private $impersonate;
-    private $delegate;
 
     /**
-     * Initialize the class. This could be better as a __construct, but for CodeIgniter compatibility we keep it separate.
+     * Initialize the class.
      *
      * @access public
      * @param string $user (the username of the mailbox account you want to use on the Exchange server)
@@ -38,12 +39,24 @@ class ExchangeClient
      * @param string $wsdl. (The path to the WSDL file. If you put them in the same directory as the Exchangeclient.php script, you can leave this alone. default: "Services.wsdl")
      * @return void
      */
-    public function init($user, $pass, $delegate = null, $wsdl = "Services.wsdl")
+    public function __construct($user, $pass, $delegate = null, $wsdl = "Services.wsdl")
     {
         $this->wsdl = $wsdl;
         $this->user = $user;
         $this->pass = $pass;
         $this->delegate = $delegate;
+    }
+
+    /**
+     * Create the client object and connect to the EWS server, the the object doesn't already exist
+     * @access private
+     * @return void
+     */
+    private function connect()
+    {
+        if ($client !== false) {
+            return;
+        }
 
         $this->setup();
 
@@ -70,6 +83,7 @@ class ExchangeClient
      */
     public function create_event($subject, $start, $end, $location, $isallday = false)
     {
+        $this->connect();
         $this->setup();
 
         $CreateItem->SendMeetingInvitations = "SendToNone";
@@ -98,6 +112,7 @@ class ExchangeClient
 
     public function get_events($start, $end)
     {
+        $this->connect();
         $this->setup();
 
         $FindItem->Traversal = "Shallow";
@@ -195,6 +210,7 @@ class ExchangeClient
      */
     public function get_messages($limit = 50, $onlyunread = false, $folder = "inbox", $folderIdIsDistinguishedFolderId = true)
     {
+        $this->connect();
         $this->setup();
 
         $FindItem = new stdClass();
@@ -358,6 +374,7 @@ class ExchangeClient
      */
     public function send_message($to, $subject, $content, $bodytype = "Text", $saveinsent = true, $markasread = true, $attachments = false, $cc = false, $bcc = false)
     {
+        $this->connect();
         $this->setup();
 
         if ($attachments && !is_array($attachments)) {
@@ -524,6 +541,7 @@ class ExchangeClient
      */
     public function delete_message($ItemId, $deletetype = "HardDelete")
     {
+        $this->connect();
         $this->setup();
 
         $DeleteItem->DeleteType = $deletetype;
@@ -550,6 +568,7 @@ class ExchangeClient
      */
     public function move_message($ItemId, $FolderId)
     {
+        $this->connect();
         $this->setup();
 
         $MoveItem = new stdClass();
@@ -591,6 +610,7 @@ class ExchangeClient
      */
     public function get_subfolders($ParentFolderId = "inbox", $Distinguished = true)
     {
+        $this->connect();
         $this->setup();
 
         $FolderItem = new stdClass();
@@ -626,7 +646,7 @@ class ExchangeClient
     }
 
     /**
-     * Sets up strream handling. Internally used.
+     * Sets up stream handling. Internally used.
      *
      * @access private
      * @return void

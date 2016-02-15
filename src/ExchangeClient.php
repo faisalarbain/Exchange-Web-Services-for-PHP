@@ -2,8 +2,9 @@
 
 namespace ExchangeClient;
 
-use Exception;
-use SoapHeader;
+use \Exception;
+use \SoapHeader;
+use \stdClass;
 
 /**
  * Exchangeclient class.

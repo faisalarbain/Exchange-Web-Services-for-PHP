@@ -2,7 +2,7 @@
 
 namespace ExchangeClient;
 
-use SoapClient;
+use \SoapClient;
 
 class NTLMSoapClient extends SoapClient
 {

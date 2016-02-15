@@ -2,7 +2,7 @@
 
 namespace ExchangeClient;
 
-use SimpleXMLElement;
+use \SimpleXMLElement;
 
 class ExchangeNTLMStream extends NTLMStream
 {

@@ -137,7 +137,7 @@ class ExchangeClient
         $items = $response->ResponseMessages->FindItemResponseMessage->RootFolder->Items->CalendarItem;
 
         $i = 0;
-        $events = array();
+        $events = [];
 
         if (count($items) == 0) {
             return false;
@@ -173,7 +173,7 @@ class ExchangeClient
             $organizer->name = $eventobj->Organizer->Mailbox->Name;
             $organizer->email = $eventobj->Organizer->Mailbox->EmailAddress;
 
-            $people = array();
+            $people = [];
             $required = $eventobj->RequiredAttendees->Attendee;
 
             if (!is_array($required)) {
@@ -230,7 +230,7 @@ class ExchangeClient
             $FindItem->ParentFolderIds->FolderId->Id = $folder;
         }
 
-        if ($this->delegate != null) {
+        if (!is_null($this->delegate)) {
             $FindItem->ParentFolderIds->DistinguishedFolderId->Mailbox = new stdClass();
             $FindItem->ParentFolderIds->DistinguishedFolderId->Mailbox->EmailAddress = $this->delegate;
         }
@@ -244,16 +244,17 @@ class ExchangeClient
 
         // No email in that folder
         if (!$response->ResponseMessages->FindItemResponseMessage->RootFolder->TotalItemsInView) {
-            return false;
+            return [];
         }
 
         $items = $response->ResponseMessages->FindItemResponseMessage->RootFolder->Items->Message;
 
-        $messages = array();
+        $messages = [];
 
-        if (!is_array($items)) //if we only returned one message, then it doesn't send it as an array, just as a single object. so put it into an array so that everything works as expected.
-        {
-            $items = array($items);
+        if (!is_array($items)) {
+            // if we only returned one message, then it doesn't send it as an array, just as a single object.
+            // so put it into an array so that everything works as expected.
+            $items = [$items];
         }
 
         foreach ($items as $i => $item) {
@@ -288,17 +289,19 @@ class ExchangeClient
             $newmessage->from = $messageobj->From->Mailbox->EmailAddress;
             $newmessage->from_name = $messageobj->From->Mailbox->Name;
 
-            $newmessage->to_recipients = array();
+            $newmessage->to_recipients = [];
 
-            if (!is_array($messageobj->ToRecipients->Mailbox)) {
-                $messageobj->ToRecipients->Mailbox = array($messageobj->ToRecipients->Mailbox);
+            if (isset($messageobj->ToRecipients)) {
+                if (!is_array($messageobj->ToRecipients->Mailbox)) {
+                    $messageobj->ToRecipients->Mailbox = array($messageobj->ToRecipients->Mailbox);
+                }
+
+                foreach ($messageobj->ToRecipients->Mailbox as $mailbox) {
+                    $newmessage->to_recipients[] = $mailbox;
+                }
             }
 
-            foreach ($messageobj->ToRecipients->Mailbox as $mailbox) {
-                $newmessage->to_recipients[] = $mailbox;
-            }
-
-            $newmessage->cc_recipients = array();
+            $newmessage->cc_recipients = [];
 
             if (isset($messageobj->CcRecipients->Mailbox)) {
                 if (!is_array($messageobj->CcRecipients->Mailbox)) {
@@ -313,7 +316,7 @@ class ExchangeClient
             $newmessage->time_sent = $messageobj->DateTimeSent;
             $newmessage->time_created = $messageobj->DateTimeCreated;
             $newmessage->subject = $messageobj->Subject;
-            $newmessage->attachments = array();
+            $newmessage->attachments = [];
 
             if ($messageobj->HasAttachments == 1) {
                 if (property_exists($messageobj->Attachments, 'FileAttachment')) {
@@ -399,7 +402,7 @@ class ExchangeClient
         $CreateItem->Items->Message->Body->_ = $content;
 
         if (is_array($to)) {
-            $recipients = array();
+            $recipients = [];
             foreach ($to as $EmailAddress) {
                 $Mailbox = new stdClass();
                 $Mailbox->EmailAddress = $EmailAddress;
@@ -413,7 +416,7 @@ class ExchangeClient
 
         if ($cc) {
             if (is_array($cc)) {
-                $recipients = array();
+                $recipients = [];
                 foreach ($cc as $EmailAddress) {
                     $Mailbox = new stdClass();
                     $Mailbox->EmailAddress = $EmailAddress;
@@ -428,7 +431,7 @@ class ExchangeClient
 
         if ($bcc) {
             if (is_array($bcc)) {
-                $recipients = array();
+                $recipients = [];
                 foreach ($bcc as $EmailAddress) {
                     $Mailbox = new stdClass();
                     $Mailbox->EmailAddress = $EmailAddress;
@@ -607,7 +610,7 @@ class ExchangeClient
      * @access public
      * @param string $ParentFolderId string representing the folder id of the parent folder, defaults to "inbox"
      * @param bool $Distinguished Defines whether or not its a distinguished folder name or not
-     * @return object $response the response containing all the folders
+     * @return array $response the response containing all the folders
      */
     public function get_subfolders($ParentFolderId = "inbox", $Distinguished = true)
     {
@@ -632,7 +635,12 @@ class ExchangeClient
         $response = $this->client->FindFolder($FolderItem);
 
         if ($response->ResponseMessages->FindFolderResponseMessage->ResponseCode == "NoError") {
-            $folders = array();
+
+            if (!$response->ResponseMessages->FindFolderResponseMessage->RootFolder->TotalItemsInView) {
+                return [];
+            }
+
+            $folders = [];
 
             if (!is_array($response->ResponseMessages->FindFolderResponseMessage->RootFolder->Folders->Folder)) {
                 $folders[] = $response->ResponseMessages->FindFolderResponseMessage->RootFolder->Folders->Folder;

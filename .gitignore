@@ -2,3 +2,6 @@
 *.tmp
 *.swp
 .DS_Store
+vendor
+composer.lock
+.env

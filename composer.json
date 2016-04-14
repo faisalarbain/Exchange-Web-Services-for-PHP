@@ -10,5 +10,8 @@
     	"psr-4": {
       	"ExchangeClient\\": "src"
     	}
-  }
+  },
+    "require-dev": {
+        "vlucas/phpdotenv": "^2.2"
+    }
 }

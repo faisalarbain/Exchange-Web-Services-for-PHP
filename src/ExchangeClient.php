@@ -385,6 +385,8 @@ class ExchangeClient
             $attachments = false;
         }
 
+        $CreateItem = CreateItem::blank();
+
         if ($attachments) {
             $CreateItem->MessageDisposition = "SaveOnly";
             $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = 'drafts';

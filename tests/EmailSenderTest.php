@@ -166,6 +166,7 @@ The information should be place in `.env.testing` file.
 to run integration test:
 	
 	phpunit --group integration
+	phpunit --group smoke
 
 /* ---- .env.testing ---- */
 

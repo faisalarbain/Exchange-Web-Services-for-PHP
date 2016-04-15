@@ -93,7 +93,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @test
-	 * @group integration
+	 * @group  integration
 	 */
 	public function can_send_composed_email()
 	{

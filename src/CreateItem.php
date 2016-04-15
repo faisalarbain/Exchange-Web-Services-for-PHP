@@ -31,16 +31,6 @@ class CreateItem
 							'EmailAddress' => ''
 						]
 					],
-					'CcRecipients' => [
-						'Mailbox' => [
-							'EmailAddress' => ''
-						]
-					],
-					'BccRecipients' => [
-						'Mailbox' => [
-							'EmailAddress' => ''
-						]
-					],
 					'IsRead' => 'true'
 				]
 			]
@@ -107,9 +97,11 @@ class CreateItem
 				$recipients[] = $Mailbox;
 			}
 
-			$this->Items->Message->CcRecipients->Mailbox = $recipients;
+			$this->Items->Message->CcRecipients = (object)["Mailbox" => $recipients];
 		} else {
-			$this->Items->Message->CcRecipients->Mailbox->EmailAddress = $this->cc[0];
+			$EmailAddress = $this->cc[0];
+			$recipient = (object)["EmailAddress" => $EmailAddress];
+			$this->Items->Message->CcRecipients = (object)["Mailbox" => $recipient];
 		}
 		return $this;
 	}
@@ -128,10 +120,13 @@ class CreateItem
 				$recipients[] = $Mailbox;
 			}
 
-			$this->Items->Message->BccRecipients->Mailbox = $recipients;
+			$this->Items->Message->BccRecipients = (object)["Mailbox" => $recipients];
 		} else {
-			$this->Items->Message->BccRecipients->Mailbox->EmailAddress = $this->bcc[0];
+			$EmailAddress = $this->bcc[0];
+			$recipient = (object)["EmailAddress" => $EmailAddress];
+			$this->Items->Message->BccRecipients = (object)["Mailbox" => $recipient];
 		}
+
 		return $this;
 	}
 

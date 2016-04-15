@@ -66,6 +66,7 @@ class ExchangeClient
             'exceptions' => true,
             'login' => $this->user,
             'password' => $this->pass,
+            'connection_timeout'=> 600,
         ));
 
         $this->teardown();
@@ -675,6 +676,7 @@ class ExchangeClient
         }
 
         if ($cc) {
+            $CreateItem->Items->Message->CcRecipients = new stdClass();
             if (is_array($cc)) {
                 $recipients = [];
                 foreach ($cc as $EmailAddress) {
@@ -685,11 +687,12 @@ class ExchangeClient
 
                 $CreateItem->Items->Message->CcRecipients->Mailbox = $recipients;
             } else {
-                $CreateItem->Items->Message->CcRecipients->Mailbox->EmailAddress = $cc;
+                $CreateItem->Items->Message->CcRecipients->Mailbox = (object)["EmailAddress" => $cc];
             }
         }
 
         if ($bcc) {
+            $CreateItem->Items->Message->BccRecipients = new stdClass();
             if (is_array($bcc)) {
                 $recipients = [];
                 foreach ($bcc as $EmailAddress) {
@@ -700,7 +703,7 @@ class ExchangeClient
 
                 $CreateItem->Items->Message->BccRecipients->Mailbox = $recipients;
             } else {
-                $CreateItem->Items->Message->BccRecipients->Mailbox->EmailAddress = $bcc;
+                $CreateItem->Items->Message->BccRecipients->Mailbox = (object)["EmailAddress" => $bcc];
             }
         }
 

@@ -385,74 +385,7 @@ class ExchangeClient
             $attachments = false;
         }
 
-        $CreateItem = CreateItem::blank();
-
-        if ($attachments) {
-            $CreateItem->MessageDisposition = "SaveOnly";
-            $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = 'drafts';
-        } else {
-            if ($saveinsent) {
-                $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = "sentitems";
-            } else {
-                $CreateItem->MessageDisposition = "SendOnly";
-            }
-        }
-
-        $CreateItem->Items->Message->ItemClass = "IPM.Note";
-        $CreateItem->Items->Message->Subject = $subject;
-        $CreateItem->Items->Message->Body->BodyType = $bodytype;
-        $CreateItem->Items->Message->Body->_ = $content;
-
-        if (is_array($to)) {
-            $recipients = [];
-            foreach ($to as $EmailAddress) {
-                $Mailbox = new stdClass();
-                $Mailbox->EmailAddress = $EmailAddress;
-                $recipients[] = $Mailbox;
-            }
-
-            $CreateItem->Items->Message->ToRecipients->Mailbox = $recipients;
-        } else {
-            $CreateItem->Items->Message->ToRecipients->Mailbox->EmailAddress = $to;
-        }
-
-        if ($cc) {
-            if (is_array($cc)) {
-                $recipients = [];
-                foreach ($cc as $EmailAddress) {
-                    $Mailbox = new stdClass();
-                    $Mailbox->EmailAddress = $EmailAddress;
-                    $recipients[] = $Mailbox;
-                }
-
-                $CreateItem->Items->Message->CcRecipients->Mailbox = $recipients;
-            } else {
-                $CreateItem->Items->Message->CcRecipients->Mailbox->EmailAddress = $cc;
-            }
-        }
-
-        if ($bcc) {
-            if (is_array($bcc)) {
-                $recipients = [];
-                foreach ($bcc as $EmailAddress) {
-                    $Mailbox = new stdClass();
-                    $Mailbox->EmailAddress = $EmailAddress;
-                    $recipients[] = $Mailbox;
-                }
-
-                $CreateItem->Items->Message->BccRecipients->Mailbox = $recipients;
-            } else {
-                $CreateItem->Items->Message->BccRecipients->Mailbox->EmailAddress = $bcc;
-            }
-        }
-
-        if ($markasread) {
-            $CreateItem->Items->Message->IsRead = "true";
-        }
-
-        if ($this->delegate != null) {
-            $CreateItem->Items->Message->From->Mailbox->EmailAddress = $this->delegate;
-        }
+        $CreateItem = $this->composeEmail($to, $subject, $content, $bodytype, $saveinsent, $markasread, $attachments, $cc, $bcc);
 
         $response = $this->client->CreateItem($CreateItem);
 
@@ -694,5 +627,91 @@ class ExchangeClient
     {
         stream_wrapper_restore('http');
         stream_wrapper_restore('https');
+    }
+
+    /**
+     * @param $to
+     * @param $subject
+     * @param $content
+     * @param $bodytype
+     * @param $saveinsent
+     * @param $markasread
+     * @param $attachments
+     * @param $cc
+     * @param $bcc
+     * @return mixed
+     */
+    private function composeEmail($to, $subject, $content, $bodytype, $saveinsent, $markasread, $attachments, $cc, $bcc)
+    {
+        $CreateItem = CreateItem::blank();
+
+        if ($attachments) {
+            $CreateItem->MessageDisposition = "SaveOnly";
+            $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = 'drafts';
+        } else {
+            if ($saveinsent) {
+                $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = "sentitems";
+            } else {
+                $CreateItem->MessageDisposition = "SendOnly";
+            }
+        }
+
+        $CreateItem->Items->Message->ItemClass = "IPM.Note";
+        $CreateItem->Items->Message->Subject = $subject;
+        $CreateItem->Items->Message->Body->BodyType = $bodytype;
+        $CreateItem->Items->Message->Body->_ = $content;
+
+        if (is_array($to)) {
+            $recipients = [];
+            foreach ($to as $EmailAddress) {
+                $Mailbox = new stdClass();
+                $Mailbox->EmailAddress = $EmailAddress;
+                $recipients[] = $Mailbox;
+            }
+
+            $CreateItem->Items->Message->ToRecipients->Mailbox = $recipients;
+        } else {
+            $CreateItem->Items->Message->ToRecipients->Mailbox->EmailAddress = $to;
+        }
+
+        if ($cc) {
+            if (is_array($cc)) {
+                $recipients = [];
+                foreach ($cc as $EmailAddress) {
+                    $Mailbox = new stdClass();
+                    $Mailbox->EmailAddress = $EmailAddress;
+                    $recipients[] = $Mailbox;
+                }
+
+                $CreateItem->Items->Message->CcRecipients->Mailbox = $recipients;
+            } else {
+                $CreateItem->Items->Message->CcRecipients->Mailbox->EmailAddress = $cc;
+            }
+        }
+
+        if ($bcc) {
+            if (is_array($bcc)) {
+                $recipients = [];
+                foreach ($bcc as $EmailAddress) {
+                    $Mailbox = new stdClass();
+                    $Mailbox->EmailAddress = $EmailAddress;
+                    $recipients[] = $Mailbox;
+                }
+
+                $CreateItem->Items->Message->BccRecipients->Mailbox = $recipients;
+            } else {
+                $CreateItem->Items->Message->BccRecipients->Mailbox->EmailAddress = $bcc;
+            }
+        }
+
+        if ($markasread) {
+            $CreateItem->Items->Message->IsRead = "true";
+        }
+
+        if ($this->delegate != null) {
+            $CreateItem->Items->Message->From->Mailbox->EmailAddress = $this->delegate;
+            return $CreateItem;
+        }
+        return $CreateItem;
     }
 }

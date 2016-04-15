@@ -49,29 +49,6 @@ class CreateItem
 		return self::blank();
 	}
 
-	public function to($email) {
-		if(is_array($email)){
-			$this->to = array_merge($this->to, $email);
-		}else{
-			$this->to[] = $email;
-		}
-
-		if (count($this->to) > 1) {
-			$recipients = [];
-			foreach ($this->to as $EmailAddress) {
-				$Mailbox = (object)["EmailAddress" => $EmailAddress];
-				$recipients[] = $Mailbox;
-			}
-
-			$this->Items->Message->ToRecipients->Mailbox = $recipients;
-		} else {
-			$this->Items->Message->ToRecipients->Mailbox->EmailAddress = $this->to[0];
-		}
-
-		return $this;
-	}
-
-
 	public function subject($subject) {
 		$this->Items->Message->Subject = $subject;
 		return $this;
@@ -83,49 +60,35 @@ class CreateItem
 		return $this;
 	}
 
+	public function to($email) {
+		return $this->_addRecipient("To", $email);
+	}
+
 	public function cc($email){
-		if(is_array($email)){
-			$this->cc = array_merge($this->cc, $email);
-		}else{
-			$this->cc[] = $email;
-		}
-
-		if (count($this->cc) > 1) {
-			$recipients = [];
-			foreach ($this->cc as $EmailAddress) {
-				$Mailbox = (object)["EmailAddress" => $EmailAddress];
-				$recipients[] = $Mailbox;
-			}
-
-			$this->Items->Message->CcRecipients = (object)["Mailbox" => $recipients];
-		} else {
-			$EmailAddress = $this->cc[0];
-			$recipient = (object)["EmailAddress" => $EmailAddress];
-			$this->Items->Message->CcRecipients = (object)["Mailbox" => $recipient];
-		}
-		return $this;
+		return $this->_addRecipient("Cc", $email);
 	}
 
 	public function bcc($email){
-		if(is_array($email)){
-			$this->bcc = array_merge($this->bcc, $email);
-		}else{
-			$this->bcc[] = $email;
+		return $this->_addRecipient("Bcc", $email);
+	}
+
+	private function _addRecipient($type, $email) {
+		$_type = $type;
+		$type = strtolower($type);
+
+		if(!is_array($email)){
+			$email = [$email];
 		}
 
-		if (count($this->bcc) > 1) {
-			$recipients = [];
-			foreach ($this->bcc as $EmailAddress) {
-				$Mailbox = (object)["EmailAddress" => $EmailAddress];
-				$recipients[] = $Mailbox;
-			}
+		$this->$type = array_merge($this->$type, $email);
 
-			$this->Items->Message->BccRecipients = (object)["Mailbox" => $recipients];
-		} else {
-			$EmailAddress = $this->bcc[0];
-			$recipient = (object)["EmailAddress" => $EmailAddress];
-			$this->Items->Message->BccRecipients = (object)["Mailbox" => $recipient];
+		$recipients = [];
+		foreach ($this->$type as $EmailAddress) {
+			$Mailbox = (object)["EmailAddress" => $EmailAddress];
+			$recipients[] = $Mailbox;
 		}
+
+		$this->Items->Message->{ $_type . "Recipients" } = (object) ["Mailbox" => $recipients];
 
 		return $this;
 	}

@@ -662,22 +662,22 @@ class ExchangeClient
         $CreateItem->Items->Message->Body->BodyType = $bodytype;
         $CreateItem->Items->Message->Body->_ = $content;
 
-        if (is_array($to)) {
-            $recipients = [];
-            foreach ($to as $EmailAddress) {
-                $Mailbox = new stdClass();
-                $Mailbox->EmailAddress = $EmailAddress;
-                $recipients[] = $Mailbox;
-            }
+        if(!is_array($to)) $to = [$to];
 
-            $CreateItem->Items->Message->ToRecipients->Mailbox = $recipients;
-        } else {
-            $CreateItem->Items->Message->ToRecipients->Mailbox->EmailAddress = $to;
+        $recipients = [];
+        foreach ($to as $EmailAddress) {
+            $Mailbox = new stdClass();
+            $Mailbox->EmailAddress = $EmailAddress;
+            $recipients[] = $Mailbox;
         }
+
+        $CreateItem->Items->Message->ToRecipients->Mailbox = $recipients;
+
 
         if ($cc) {
             $CreateItem->Items->Message->CcRecipients = new stdClass();
-            if (is_array($cc)) {
+
+            if(!is_array($cc)) $cc = [$cc];
                 $recipients = [];
                 foreach ($cc as $EmailAddress) {
                     $Mailbox = new stdClass();
@@ -686,25 +686,21 @@ class ExchangeClient
                 }
 
                 $CreateItem->Items->Message->CcRecipients->Mailbox = $recipients;
-            } else {
-                $CreateItem->Items->Message->CcRecipients->Mailbox = (object)["EmailAddress" => $cc];
-            }
         }
 
         if ($bcc) {
             $CreateItem->Items->Message->BccRecipients = new stdClass();
-            if (is_array($bcc)) {
-                $recipients = [];
-                foreach ($bcc as $EmailAddress) {
-                    $Mailbox = new stdClass();
-                    $Mailbox->EmailAddress = $EmailAddress;
-                    $recipients[] = $Mailbox;
-                }
+            if(!is_array($bcc)) $bcc = [$bcc];
 
-                $CreateItem->Items->Message->BccRecipients->Mailbox = $recipients;
-            } else {
-                $CreateItem->Items->Message->BccRecipients->Mailbox = (object)["EmailAddress" => $bcc];
+            $recipients = [];
+            foreach ($bcc as $EmailAddress) {
+                $Mailbox = new stdClass();
+                $Mailbox->EmailAddress = $EmailAddress;
+                $recipients[] = $Mailbox;
             }
+
+            $CreateItem->Items->Message->BccRecipients->Mailbox = $recipients;
+
         }
 
         if ($markasread) {

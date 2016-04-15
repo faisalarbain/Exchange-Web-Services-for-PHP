@@ -38,24 +38,22 @@ class Email
 	}
 
 	public function to($email) {
-		return $this->_addRecipient("To", $email);
+		return $this->_addRecipient("to", $email);
 	}
 
 	public function cc($email){
-		return $this->_addRecipient("Cc", $email);
+		return $this->_addRecipient("cc", $email);
 	}
 
 	public function bcc($email){
-		return $this->_addRecipient("Bcc", $email);
+		return $this->_addRecipient("bcc", $email);
 	}
 
 	private function _addRecipient($type, $email) {
-		$_type = $type;
-		$type = strtolower($type);
 		if(!is_array($email)) $email = [$email];
 
 		$this->$type = array_merge($this->$type, $email);
-		$this->Items->Message->setRecipeints($_type, $this->$type);
+		$this->Items->Message->setRecipeints($type, $this->$type);
 
 		return $this;
 	}

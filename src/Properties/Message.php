@@ -20,7 +20,7 @@ class Message
 
 	public function setRecipeints($type, $recipients)
 	{
-		$this->{$type . 'Recipients'} = Property::Mailbox(array_map(function ($email) {
+		$this->{ucfirst($type) . 'Recipients'} = Property::Mailbox(array_map(function ($email) {
 			return Property::EmailAddress($email);
 		}, $recipients));
 	}

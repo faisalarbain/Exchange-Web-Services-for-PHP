@@ -20,5 +20,12 @@
     </testsuites>
     <php>
         <ini name="memory_limit" value="2047M" />
+        <env name="APP_ENV" value="testing"/>
     </php>
+    <filter>
+        <blacklist>
+            <directory suffix=".php">*/php_vendors/</directory>
+            <directory suffix=".php">./vendor/</directory>
+        </blacklist>
+    </filter>
 </phpunit>

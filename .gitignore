@@ -4,5 +4,5 @@
 .DS_Store
 vendor
 composer.lock
-.env
+.env.testing
 coverage

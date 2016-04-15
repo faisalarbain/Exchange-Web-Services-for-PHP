@@ -9,7 +9,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	 * EmailSenderTest constructor.
 	 */
 	public function __construct() {
-		$dotenv = new Dotenv\Dotenv(__DIR__ . "/../");
+		$dotenv = new Dotenv\Dotenv(__DIR__ . "/../", '.env.testing');
 		$dotenv->load();
 	}
 

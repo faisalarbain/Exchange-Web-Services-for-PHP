@@ -21,7 +21,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$mail = $client->composeEmail("john@email.com","composed email", "hello world");
 		$mail2 = CreateItem::compose();
 		$mail2->to("john@email.com")->subject("composed email")->body("hello world");
-		$this->assertEquals(json_encode($mail), json_encode($mail2));
+		$this->assertPublicFieldsEquals($mail, $mail2);
 	}
 
 	/** @test */
@@ -32,7 +32,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$mail2 = CreateItem::compose();
 		$mail2->to(["john@email.com", "jane@email.com"])->subject("composed email")->body("hello world");
 
-		$this->assertEquals(json_encode($mail), json_encode($mail2));
+		$this->assertPublicFieldsEquals($mail, $mail2);
 	}
 
 	/** @test */
@@ -43,7 +43,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 		$mail3 = CreateItem::compose();
 		$mail3->to("john@email.com")->to("jane@email.com")->subject("composed email")->body("hello world");
-		$this->assertEquals(json_encode($mail), json_encode($mail3));
+		$this->assertPublicFieldsEquals($mail, $mail3);
 	}
 
 	/** @test */
@@ -54,7 +54,41 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 		$mail3 = CreateItem::compose();
 		$mail3->to("john@email.com")->to("jane@email.com")->to("foo@email.com")->subject("composed email")->body("hello world");
-		$this->assertEquals(json_encode($mail), json_encode($mail3));
+		$this->assertPublicFieldsEquals($mail, $mail3);
+	}
+
+	/** @test */
+	public function can_compose_email_with_cc_and_bcc()
+	{
+		$client = $this->makeClient();
+		$cc = "jane@email.com";
+		$bcc = "june@email.com";
+		$mail = $client->composeEmail("john@email.com","composed email", "hello world", 'Text',true,true,false, $cc, $bcc);
+
+		$mail2 = CreateItem::compose();
+		$mail2->to("john@email.com")
+			->subject("composed email")
+			->body("hello world")
+			->cc($cc)->bcc($bcc);
+
+		$this->assertPublicFieldsEquals($mail, $mail2);
+	}
+
+	/** @test */
+	public function can_compose_email_with_cc_and_bcc_2()
+	{
+		$client = $this->makeClient();
+		$cc = ["jane@email.com", "jane2@email.com"];
+		$bcc = ["june@email.com","june2@email.com", "june3@email.com"];
+		$mail = $client->composeEmail("john@email.com","composed email", "hello world", 'Text',true,true,false, $cc, $bcc);
+
+		$mail2 = CreateItem::compose();
+		$mail2->to("john@email.com")
+			->subject("composed email")
+			->body("hello world")
+			->cc($cc)->bcc($bcc);
+
+		$this->assertPublicFieldsEquals($mail, $mail2);
 	}
 
 	/**
@@ -111,5 +145,12 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$client = new \ExchangeClient\ExchangeClient($user, $pass, null, $wsdl);
 		return $client;
 	}
+
+	private function assertPublicFieldsEquals($mail, $mail2) {
+		$mail = json_decode(json_encode($mail));
+		$mail2 = json_decode(json_encode($mail2));
+		$this->assertEquals($mail, $mail2);
+	}
+
 
 }

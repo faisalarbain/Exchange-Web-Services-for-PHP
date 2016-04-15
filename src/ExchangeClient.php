@@ -644,7 +644,7 @@ class ExchangeClient
      */
     public function composeEmail($to, $subject, $content, $bodytype = "Text", $saveinsent = true, $markasread = true, $attachments = false, $cc = false, $bcc = false)
     {
-        $CreateItem = CreateItem::blank();
+        $CreateItem = Email::compose();
 
         if ($attachments) {
             $CreateItem->MessageDisposition = "SaveOnly";
@@ -714,7 +714,7 @@ class ExchangeClient
         return $CreateItem;
     }
 
-    public function send(CreateItem $mail) {
+    public function send(Email $mail) {
         $this->connect();
         $this->setup();
         return $this->client->CreateItem($mail);

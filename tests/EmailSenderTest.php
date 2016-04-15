@@ -2,7 +2,7 @@
 
 
 use ExchangeClient\Client;
-use ExchangeClient\CreateItem;
+use ExchangeClient\Email;
 
 class EmailSenderTest extends PHPUnit_Framework_TestCase
 {
@@ -24,9 +24,10 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	{
 		$client = $this->makeClient();
 		$mail = $client->composeEmail("john@email.com","composed email", "hello world");
-		$mail2 = CreateItem::compose();
+		$mail2 = Email::compose();
 		$mail2->to("john@email.com")->subject("composed email")->body("hello world");
 		$this->assertPublicFieldsEquals($mail, $mail2);
+		$this->assertEquals(Email::SEND_AND_SAVE_COPY, $mail2->MessageDisposition);
 	}
 
 	/** @test */
@@ -34,7 +35,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	{
 		$client = $this->makeClient();
 		$mail = $client->composeEmail(["john@email.com", "jane@email.com"],"composed email", "hello world");
-		$mail2 = CreateItem::compose();
+		$mail2 = Email::compose();
 		$mail2->to(["john@email.com", "jane@email.com"])->subject("composed email")->body("hello world");
 
 		$this->assertPublicFieldsEquals($mail, $mail2);
@@ -46,7 +47,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$client = $this->makeClient();
 		$mail = $client->composeEmail(["john@email.com", "jane@email.com"],"composed email", "hello world");
 
-		$mail3 = CreateItem::compose();
+		$mail3 = Email::compose();
 		$mail3->to("john@email.com")->to("jane@email.com")->subject("composed email")->body("hello world");
 		$this->assertPublicFieldsEquals($mail, $mail3);
 	}
@@ -57,7 +58,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$client = $this->makeClient();
 		$mail = $client->composeEmail(["john@email.com", "jane@email.com","foo@email.com"],"composed email", "hello world");
 
-		$mail3 = CreateItem::compose();
+		$mail3 = Email::compose();
 		$mail3->to("john@email.com")->to("jane@email.com")->to("foo@email.com")->subject("composed email")->body("hello world");
 		$this->assertPublicFieldsEquals($mail, $mail3);
 	}
@@ -70,7 +71,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$bcc = "june@email.com";
 		$mail = $client->composeEmail("john@email.com","composed email", "hello world", 'Text',true,true,false, $cc, $bcc);
 
-		$mail2 = CreateItem::compose();
+		$mail2 = Email::compose();
 		$mail2->to("john@email.com")
 			->subject("composed email")
 			->body("hello world")
@@ -87,7 +88,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$bcc = ["june@email.com","june2@email.com", "june3@email.com"];
 		$mail = $client->composeEmail("john@email.com","composed email", "hello world", 'Text',true,true,false, $cc, $bcc);
 
-		$mail2 = CreateItem::compose();
+		$mail2 = Email::compose();
 		$mail2->to("john@email.com")
 			->subject("composed email")
 			->body("hello world")
@@ -102,7 +103,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	 */
 	public function can_send_composed_email()
 	{
-		$mail = CreateItem::compose();
+		$mail = Email::compose();
 		$mail->to(getenv('TEST_EMAIL'))->subject("send composed email")->body("hello from composed email");
 		$client = $this->makeClient();
 		$client->send($mail);
@@ -112,7 +113,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @test
-	 * @group integration
+	 * @group smoke
 	 * */
 	public function can_send_email()
 	{
@@ -127,7 +128,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @test
-	 * @group integration
+	 * @group smoke
 	 * */
 	public function can_send_to_multiple_recipients()
 	{

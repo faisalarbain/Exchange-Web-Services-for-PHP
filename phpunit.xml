@@ -21,6 +21,7 @@
     <groups>
         <exclude>
             <group>integration</group>
+            <group>smoke</group>
         </exclude>
     </groups>
     <php>

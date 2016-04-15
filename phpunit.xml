@@ -18,6 +18,11 @@
             <directory>./src/</directory>
         </testsuite>
     </testsuites>
+    <groups>
+        <exclude>
+            <group>integration</group>
+        </exclude>
+    </groups>
     <php>
         <ini name="memory_limit" value="2047M" />
         <env name="APP_ENV" value="testing"/>

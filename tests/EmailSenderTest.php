@@ -2,6 +2,7 @@
 
 
 use ExchangeClient\Client;
+use ExchangeClient\CreateItem;
 
 class EmailSenderTest extends PHPUnit_Framework_TestCase
 {
@@ -14,6 +15,66 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	}
 
 	/** @test */
+	public function can_compose_email()
+	{
+		$client = $this->makeClient();
+		$mail = $client->composeEmail("john@email.com","composed email", "hello world");
+		$mail2 = CreateItem::compose();
+		$mail2->to("john@email.com")->subject("composed email")->body("hello world");
+		$this->assertEquals(json_encode($mail), json_encode($mail2));
+	}
+
+	/** @test */
+	public function can_compose_email_2()
+	{
+		$client = $this->makeClient();
+		$mail = $client->composeEmail(["john@email.com", "jane@email.com"],"composed email", "hello world");
+		$mail2 = CreateItem::compose();
+		$mail2->to(["john@email.com", "jane@email.com"])->subject("composed email")->body("hello world");
+
+		$this->assertEquals(json_encode($mail), json_encode($mail2));
+	}
+
+	/** @test */
+	public function can_compose_email_3()
+	{
+		$client = $this->makeClient();
+		$mail = $client->composeEmail(["john@email.com", "jane@email.com"],"composed email", "hello world");
+
+		$mail3 = CreateItem::compose();
+		$mail3->to("john@email.com")->to("jane@email.com")->subject("composed email")->body("hello world");
+		$this->assertEquals(json_encode($mail), json_encode($mail3));
+	}
+
+	/** @test */
+	public function can_compose_email_4()
+	{
+		$client = $this->makeClient();
+		$mail = $client->composeEmail(["john@email.com", "jane@email.com","foo@email.com"],"composed email", "hello world");
+
+		$mail3 = CreateItem::compose();
+		$mail3->to("john@email.com")->to("jane@email.com")->to("foo@email.com")->subject("composed email")->body("hello world");
+		$this->assertEquals(json_encode($mail), json_encode($mail3));
+	}
+
+	/**
+	 * @test
+	 * @group integration
+	 */
+	public function can_send_composed_email()
+	{
+		$mail = CreateItem::compose();
+		$mail->to(getenv('TEST_EMAIL'))->subject("send composed email")->body("hello from composed email");
+		$client = $this->makeClient();
+		$client->send($mail);
+
+	}
+
+
+	/**
+	 * @test
+	 * @group integration
+	 * */
 	public function can_send_email()
 	{
 		$email = getenv('TEST_EMAIL');
@@ -25,7 +86,10 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$this->assertTrue($success);
 	}
 
-	/** @test */
+	/**
+	 * @test
+	 * @group integration
+	 * */
 	public function can_send_to_multiple_recipients()
 	{
 		$client = $this->makeClient();

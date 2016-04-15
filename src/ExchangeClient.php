@@ -641,7 +641,7 @@ class ExchangeClient
      * @param $bcc
      * @return mixed
      */
-    private function composeEmail($to, $subject, $content, $bodytype, $saveinsent, $markasread, $attachments, $cc, $bcc)
+    public function composeEmail($to, $subject, $content, $bodytype = "Text", $saveinsent = true, $markasread = true, $attachments = false, $cc = false, $bcc = false)
     {
         $CreateItem = CreateItem::blank();
 
@@ -713,5 +713,11 @@ class ExchangeClient
             return $CreateItem;
         }
         return $CreateItem;
+    }
+
+    public function send(CreateItem $mail) {
+        $this->connect();
+        $this->setup();
+        return $this->client->CreateItem($mail);
     }
 }

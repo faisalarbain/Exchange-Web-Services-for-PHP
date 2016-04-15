@@ -9,7 +9,7 @@ class CreateItem
 
 	public static function blank() {
 		$struct = [
-			'MessageDisposition' => 'SendOnly',
+			'MessageDisposition' => 'SendAndSaveCopy',
 			'SavedItemFolderId' => [
 				'DistinguishedFolderId' => [
 					'Id' => '',

@@ -430,7 +430,10 @@ class ExchangeClient
                 $FileAttachment->ContentType = $attachmentMime;
                 $FileAttachment->Name = $filename;
 
-                $CreateAttachment = new stdClass();
+                $CreateAttachment = (object)[
+                    'Attachments' => (object)["FileAttachment" => ''],
+                    'ParentItemId' => (object)["Id" => ''],
+                ];
                 $CreateAttachment->Attachments->FileAttachment = $FileAttachment;
                 $CreateAttachment->ParentItemId->Id = $itemId;
                 $CreateAttachment->ParentItemId->ChangeKey = $itemChangeKey;
@@ -446,7 +449,20 @@ class ExchangeClient
                 $itemChangeKey = $response->ResponseMessages->CreateAttachmentResponseMessage->Attachments->FileAttachment->AttachmentId->RootItemChangeKey;
             }
 
-            $SendItem = new stdClass();
+            $SendItem = (object)[
+                "ItemIds" => (object)[
+                    "ItemId" => (object)[
+                        "Id" => '',
+                        "ChangeKey" => '',
+                    ]
+                ],
+                "SavedItemFolderId" => (object)[
+                    "DistinguishedFolderId" => (object)[
+                        "Id" => ''
+                    ]
+                ]
+            ];
+
             $SendItem->ItemIds->ItemId->Id = $itemId;
             $SendItem->ItemIds->ItemId->ChangeKey = $itemChangeKey;
 

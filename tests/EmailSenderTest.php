@@ -10,8 +10,13 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	 * EmailSenderTest constructor.
 	 */
 	public function __construct() {
-		$dotenv = new Dotenv\Dotenv(__DIR__ . "/../", '.env.testing');
-		$dotenv->load();
+		try{
+			$dotenv = new Dotenv\Dotenv(__DIR__ . "/../", '.env.testing');
+			$dotenv->load();
+		}catch (Exception $e){
+			$this->printIntegrationTestRequirement();
+			die;
+		}
 	}
 
 	/** @test */
@@ -150,6 +155,28 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$mail = json_decode(json_encode($mail));
 		$mail2 = json_decode(json_encode($mail2));
 		$this->assertEquals($mail, $mail2);
+	}
+
+	private function printIntegrationTestRequirement() {
+		echo <<<MSG
+		
+Integration test require actual credential information to run. 
+The information should be place in `.env.testing` file.
+to run integration test:
+	
+	phpunit --group integration
+
+/* ---- .env.testing ---- */
+
+USERNAME=
+PASSWORD=
+WSDL=https://url-to-your-wsdl/Services.wsdl
+TEST_EMAIL=
+TEST_EMAIL2=
+
+
+MSG;
+
 	}
 
 

@@ -2,10 +2,8 @@
 
 namespace ExchangeClient;
 
-use \Exception;
 use ExchangeClient\Properties\DistinguishedFolderId;
-use \SoapHeader;
-use \stdClass;
+use stdClass;
 
 /**
  * Exchangeclient class.
@@ -19,61 +17,18 @@ class ExchangeClient
      * @var ExchangeServiceInterface
      */
     private $client;
-
-    private $wsdl;
-    private $user;
-    private $pass;
     private $delegate;
-
-    /**
-     * The last error that occurred when communicating with the Exchange server.
-     *
-     * @var mixed
-     * @access public
-     */
     public $lastError;
-    private $impersonate;
 
     /**
-     * Initialize the class.
-     *
-     * @access public
-     * @param string $user (the username of the mailbox account you want to use on the Exchange server)
-     * @param string $pass (the password of the account)
-     * @param string $delegate. (the email address you would like to access...the account you are logging in as must be an administrator account.
-     * @param string $wsdl. (The path to the WSDL file. If you put them in the same directory as the Exchangeclient.php script, you can leave this alone. default: "Services.wsdl")
-     * @return void
+     * ExchangeClient constructor.
+     * @param ExchangeServiceInterface $client
+     * @param null $delegate
      */
-    public function __construct($user, $pass, $delegate = null, $wsdl = "Services.wsdl")
+    public function __construct(ExchangeServiceInterface $client, $delegate = null)
     {
-        $this->wsdl = $wsdl;
-        $this->user = $user;
-        $this->pass = $pass;
+        $this->client = $client;
         $this->delegate = $delegate;
-    }
-
-    /**
-     * Create the client object and connect to the EWS server, the the object doesn't already exist
-     * @access private
-     * @return void
-     */
-    private function connect()
-    {
-        if ($this->client) {
-            return;
-        }
-
-        $this->setup();
-
-        $this->client = new NTLMSoapClient($this->wsdl, array(
-            'trace' => 1,
-            'exceptions' => true,
-            'login' => $this->user,
-            'password' => $this->pass,
-            'connection_timeout'=> 600,
-        ));
-
-        $this->teardown();
     }
 
     /**
@@ -574,38 +529,17 @@ class ExchangeClient
      */
     private function setup()
     {
-        if ($this->impersonate != null) {
-            $impheader = new ImpersonationHeader($this->impersonate);
-            $header = new SoapHeader("http://schemas.microsoft.com/exchange/services/2006/messages", "ExchangeImpersonation", $impheader, false);
-            $this->client->__setSoapHeaders($header);
-        }
-
-        ExchangeNTLMStream::setCredentials($this->user, $this->pass);
-
-        stream_wrapper_unregister('http');
-        stream_wrapper_unregister('https');
-
-        if (!stream_wrapper_register('http', '\ExchangeClient\ExchangeNTLMStream')) {
-            throw new Exception("Failed to register protocol");
-        }
-
-        if (!stream_wrapper_register('https', '\ExchangeClient\ExchangeNTLMStream')) {
-            throw new Exception("Failed to register protocol");
-        }
+        //already setup
     }
 
-    /**
-     * Tears down stream handling. Internally used.
-     *
-     * @access private
-     * @return void
-     */
     private function teardown()
     {
-        stream_wrapper_restore('http');
-        stream_wrapper_restore('https');
+       
     }
-
+    private function connect()
+    {
+        
+    }
     /**
      * @param $to
      * @param $subject

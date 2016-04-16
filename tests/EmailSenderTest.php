@@ -163,7 +163,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$wsdl = getenv('WSDL');
 
 
-		$client = new \ExchangeClient\ExchangeClient($user, $pass, null, $wsdl);
+		$client = new \ExchangeClient\ExchangeClient(new \ExchangeClient\ExchangeService($user, $pass, $wsdl));
 		return $client;
 	}
 

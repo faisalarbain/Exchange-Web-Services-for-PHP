@@ -15,7 +15,10 @@ use \stdClass;
  */
 class ExchangeClient
 {
-    private $client = false;
+	/**
+     * @var ExchangeServiceInterface
+     */
+    private $client;
 
     private $wsdl;
     private $user;
@@ -56,7 +59,7 @@ class ExchangeClient
      */
     private function connect()
     {
-        if ($this->client !== false) {
+        if ($this->client) {
             return;
         }
 

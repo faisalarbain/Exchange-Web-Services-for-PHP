@@ -12,8 +12,7 @@ class ExchangeService implements ExchangeServiceInterface
 	 * @var NTLMSoapClient
 	 */
 	private $client;
-
-
+	
 	/**
 	 * ExchangeService constructor.
 	 * @param $user
@@ -35,6 +34,51 @@ class ExchangeService implements ExchangeServiceInterface
 		$this->teardown();
 	}
 
+	public function CreateItem($CreateItem)
+	{
+		return $this->client->CreateItem($CreateItem);
+	}
+
+	public function CreateAttachment($CreateAttachment)
+	{
+		return $this->client->CreateAttachment($CreateAttachment);
+	}
+
+	public function SendItem($CreateItem)
+	{
+		return $this->client->SendItem($CreateItem);
+	}
+
+	public function FindItem($FindItem)
+	{
+		// TODO: Implement FindItem() method.
+	}
+
+	public function GetItem($GetItem)
+	{
+		// TODO: Implement GetItem() method.
+	}
+
+	public function GetAttachment($GetAttachment)
+	{
+		// TODO: Implement GetAttachment() method.
+	}
+
+	public function DeleteItem($DeleteItem)
+	{
+		// TODO: Implement DeleteItem() method.
+	}
+
+	public function MoveItem($MoveItem)
+	{
+		// TODO: Implement MoveItem() method.
+	}
+
+	public function FindFolder($FolderItem)
+	{
+		// TODO: Implement FindFolder() method.
+	}
+
 	private function setup($user, $pass, $impersonate){
 		if ($impersonate != null) {
 			$impheader = new ImpersonationHeader($impersonate);
@@ -54,51 +98,6 @@ class ExchangeService implements ExchangeServiceInterface
 		if (!stream_wrapper_register('https', '\ExchangeClient\ExchangeNTLMStream')) {
 			throw new Exception("Failed to register protocol");
 		}
-	}
-
-	public function CreateItem($CreateItem)
-	{
-		return $this->client->CreateItem($CreateItem);
-	}
-
-	public function FindItem($FindItem)
-	{
-		// TODO: Implement FindItem() method.
-	}
-
-	public function GetItem($GetItem)
-	{
-		// TODO: Implement GetItem() method.
-	}
-
-	public function GetAttachment($GetAttachment)
-	{
-		// TODO: Implement GetAttachment() method.
-	}
-
-	public function CreateAttachment($CreateAttachment)
-	{
-		return $this->client->CreateAttachment($CreateAttachment);
-	}
-
-	public function SendItem($CreateItem)
-	{
-		return $this->client->SendItem($CreateItem);
-	}
-
-	public function DeleteItem($DeleteItem)
-	{
-		// TODO: Implement DeleteItem() method.
-	}
-
-	public function MoveItem($MoveItem)
-	{
-		// TODO: Implement MoveItem() method.
-	}
-
-	public function FindFolder($FolderItem)
-	{
-		// TODO: Implement FindFolder() method.
 	}
 
 	private function teardown() {

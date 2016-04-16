@@ -139,7 +139,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @test
-	 * @group attachment
+	 * @group smoke
 	 */
 	public function can_send_file_with_attachment()
 	{
@@ -148,7 +148,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		];
 
 		$client = $this->makeClient();
-		$success = $client->send_message([getenv('TEST_EMAIL'), getenv('TEST_EMAIL2')], "test send email with attachment", "hello world", 'Text', true,true, $attachments);
+		$success = $client->send_message([getenv('TEST_EMAIL')], "test send email with attachment", "hello world", 'Text', false,true, $attachments);
 		$this->assertTrue($success);
 	}
 

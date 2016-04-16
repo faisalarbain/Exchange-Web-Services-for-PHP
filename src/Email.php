@@ -16,6 +16,7 @@ class Email
 	public $MessageDisposition;
 	public $SavedItemFolderId;
 	public $Items;
+	public $SaveItemToFolder = true;
 
 	public function __construct() {
 		$this->MessageDisposition = self::SEND_AND_SAVE_COPY;

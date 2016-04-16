@@ -3,6 +3,7 @@
 namespace ExchangeClient;
 
 use \Exception;
+use ExchangeClient\Properties\DistinguishedFolderId;
 use \SoapHeader;
 use \stdClass;
 
@@ -382,65 +383,33 @@ class ExchangeClient
         $this->connect();
         $this->setup();
 
-        if ($attachments && !is_array($attachments)) {
-            $attachments = false;
-        }
-
         $CreateItem = $this->composeEmail($to, $subject, $content, $bodytype, $saveinsent, $markasread, $attachments, $cc, $bcc);
+
+        if ($attachments && is_array($attachments)) {
+            $this->makeMessageAsDraft($CreateItem);
+        }
 
         $response = $this->client->CreateItem($CreateItem);
 
-        if ($response->ResponseMessages->CreateItemResponseMessage->ResponseCode != "NoError") {
+        if (!$this->success($response,"CreateItem")) {
             $this->lastError = $response->ResponseMessages->CreateItemResponseMessage->ResponseCode;
             $this->teardown();
             return false;
         }
 
-        if ($attachments && $response->ResponseMessages->CreateItemResponseMessage->ResponseCode == "NoError") {
+        if ($attachments && $this->success($response, "CreateItem")) {
             $itemId = $response->ResponseMessages->CreateItemResponseMessage->Items->Message->ItemId->Id;
-            $itemChangeKey = $response->ResponseMessages->CreateItemResponseMessage->Items->Message->ItemId->ChangeKey;
+            $itemChangeKey  = $response->ResponseMessages->CreateItemResponseMessage->Items->Message->ItemId->ChangeKey;
 
             foreach ($attachments as $attachment) {
                 if (!file_exists($attachment)) {
                     continue;
                 }
 
-                $attachmentMime = "";
-
-                $fileExtension = pathinfo($attachment, PATHINFO_EXTENSION);
-
-                if ($fileExtension == "xls") {
-                    $attachmentMime = "application/vnd.ms-excel";
-                }
-
-                if (!strlen($attachmentMime)) {
-                    $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
-                    $attachmentMime = finfo_file($fileInfo, $attachment);
-                    finfo_close($fileInfo);
-                }
-
-                $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
-                $attachmentMime = finfo_file($fileInfo, $attachment);
-                finfo_close($fileInfo);
-
-                $filename = pathinfo($attachment, PATHINFO_BASENAME);
-
-                $FileAttachment = new stdClass();
-                $FileAttachment->Content = file_get_contents($attachment);
-                $FileAttachment->ContentType = $attachmentMime;
-                $FileAttachment->Name = $filename;
-
-                $CreateAttachment = (object)[
-                    'Attachments' => (object)["FileAttachment" => ''],
-                    'ParentItemId' => (object)["Id" => ''],
-                ];
-                $CreateAttachment->Attachments->FileAttachment = $FileAttachment;
-                $CreateAttachment->ParentItemId->Id = $itemId;
-                $CreateAttachment->ParentItemId->ChangeKey = $itemChangeKey;
-
+	            $CreateAttachment = $this->makeAttachment($attachment, $itemId, $itemChangeKey);
                 $response = $this->client->CreateAttachment($CreateAttachment);
 
-                if ($response->ResponseMessages->CreateAttachmentResponseMessage->ResponseCode != "NoError") {
+                if (!$this->success($response, 'CreateAttachment')) {
                     $this->lastError = $response->ResponseMessages->CreateAttachmentResponseMessage->ResponseCode;
                     return false;
                 }
@@ -449,33 +418,21 @@ class ExchangeClient
                 $itemChangeKey = $response->ResponseMessages->CreateAttachmentResponseMessage->Attachments->FileAttachment->AttachmentId->RootItemChangeKey;
             }
 
-            $SendItem = (object)[
+            $CreateItem = (object)[
                 "ItemIds" => (object)[
                     "ItemId" => (object)[
                         "Id" => '',
                         "ChangeKey" => '',
                     ]
                 ],
-                "SavedItemFolderId" => (object)[
-                    "DistinguishedFolderId" => (object)[
-                        "Id" => ''
-                    ]
-                ]
             ];
 
-            $SendItem->ItemIds->ItemId->Id = $itemId;
-            $SendItem->ItemIds->ItemId->ChangeKey = $itemChangeKey;
+            $CreateItem->ItemIds->ItemId->Id = $itemId;
+            $CreateItem->ItemIds->ItemId->ChangeKey = $itemChangeKey;
+			$this->SaveItemToFolder($CreateItem, $saveinsent);
+			$response = $this->client->SendItem($CreateItem);
 
-            if ($saveinsent) {
-                $SendItem->SaveItemToFolder = true;
-                $SendItem->SavedItemFolderId->DistinguishedFolderId->Id = "sentitems";
-            } else {
-                $SendItem->SaveItemToFolder = false;
-            }
-
-            $response = $this->client->SendItem($SendItem);
-
-            if ($response->ResponseMessages->SendItemResponseMessage->ResponseCode != "NoError") {
+            if (!$this->success($response, 'SendItem')) {
                 $this->lastError = $response->ResponseMessages->SendItemResponseMessage->ResponseCode;
                 $this->teardown();
                 return false;
@@ -662,16 +619,7 @@ class ExchangeClient
     {
         $CreateItem = Email::compose();
 
-        if ($attachments) {
-            $CreateItem->MessageDisposition = "SaveOnly";
-            $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = 'drafts';
-        } else {
-            if ($saveinsent) {
-                $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = "sentitems";
-            } else {
-                $CreateItem->MessageDisposition = "SendOnly";
-            }
-        }
+	    $this->SaveItemToFolder($CreateItem, $saveinsent);
 
         $CreateItem->Items->Message->ItemClass = "IPM.Note";
         $CreateItem->Items->Message->Subject = $subject;
@@ -735,4 +683,81 @@ class ExchangeClient
         $this->setup();
         return $this->client->CreateItem($mail);
     }
+
+    /**
+     * @param $CreateItem
+     */
+    private function makeMessageAsDraft($CreateItem)
+    {
+        $CreateItem->MessageDisposition = "SaveOnly";
+	    $CreateItem->SaveItemToFolder = false;
+        $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = 'drafts';
+    }
+
+	/**
+	 * @param $CreateItem
+	 * @param $save
+	 */
+	private function SaveItemToFolder($CreateItem, $save)
+	{
+		if($save){
+			$CreateItem->SaveItemToFolder = true;
+			$CreateItem->SavedItemFolderId = DistinguishedFolderId::SendItems();
+		}else{
+			$CreateItem->SaveItemToFolder = false;
+			$CreateItem->MessageDisposition = "SendOnly";
+		}
+	}
+
+	/**
+	 * @param $attachment
+	 * @param $itemId
+	 * @param $itemChangeKey
+	 * @return object
+	 */
+	private function makeAttachment($attachment, $itemId, $itemChangeKey)
+	{
+		$attachmentMime = "";
+
+		$fileExtension = pathinfo($attachment, PATHINFO_EXTENSION);
+
+		if ($fileExtension == "xls") {
+			$attachmentMime = "application/vnd.ms-excel";
+		}
+
+		if (!strlen($attachmentMime)) {
+			$fileInfo = finfo_open(FILEINFO_MIME_TYPE);
+			$attachmentMime = finfo_file($fileInfo, $attachment);
+			finfo_close($fileInfo);
+		}
+
+		$fileInfo = finfo_open(FILEINFO_MIME_TYPE);
+		$attachmentMime = finfo_file($fileInfo, $attachment);
+		finfo_close($fileInfo);
+
+		$filename = pathinfo($attachment, PATHINFO_BASENAME);
+
+		$FileAttachment = new stdClass();
+		$FileAttachment->Content = file_get_contents($attachment);
+		$FileAttachment->ContentType = $attachmentMime;
+		$FileAttachment->Name = $filename;
+
+		$CreateAttachment = (object)[
+			'Attachments' => (object)["FileAttachment" => ''],
+			'ParentItemId' => (object)["Id" => ''],
+		];
+		$CreateAttachment->Attachments->FileAttachment = $FileAttachment;
+		$CreateAttachment->ParentItemId->Id = $itemId;
+		$CreateAttachment->ParentItemId->ChangeKey = $itemChangeKey;
+		return $CreateAttachment;
+	}
+
+	/**
+	 * @param $response
+	 * @return bool
+	 */
+	private function success($response, $action)
+	{
+		return $response->ResponseMessages->{ $action . 'ResponseMessage' }->ResponseCode == "NoError";
+	}
 }

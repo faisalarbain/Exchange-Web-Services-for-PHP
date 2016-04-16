@@ -13,21 +13,20 @@ use stdClass;
  */
 class ExchangeClient
 {
-	/**
-     * @var ExchangeServiceInterface
-     */
     private $client;
     private $delegate;
     public $lastError;
+    private $exchangeService;
 
     /**
      * ExchangeClient constructor.
-     * @param ExchangeServiceInterface $client
+     * @param ExchangeServiceInterface $exchangeService
      * @param null $delegate
      */
-    public function __construct(ExchangeServiceInterface $client, $delegate = null)
+    public function __construct(ExchangeServiceInterface $exchangeService, $delegate = null)
     {
-        $this->client = $client;
+        $this->exchangeService = $exchangeService;
+        $this->client = $this->exchangeService->client;
         $this->delegate = $delegate;
     }
 

@@ -11,8 +11,8 @@ class ExchangeService implements ExchangeServiceInterface
 	/**
 	 * @var NTLMSoapClient
 	 */
-	private $client;
-	
+	public $client;
+
 	/**
 	 * ExchangeService constructor.
 	 * @param $user
@@ -36,7 +36,10 @@ class ExchangeService implements ExchangeServiceInterface
 
 	public function CreateItem($CreateItem)
 	{
-		return $this->client->CreateItem($CreateItem);
+		$response = $this->client->CreateItem($CreateItem);
+		$this->teardown();
+		
+		
 	}
 
 	public function CreateAttachment($CreateAttachment)

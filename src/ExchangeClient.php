@@ -337,26 +337,21 @@ class ExchangeClient
      */
     public function send_message($to, $subject, $content, $bodytype = "Text", $saveinsent = true, $markasread = true, $attachments = false, $cc = false, $bcc = false)
     {
-        $this->connect();
-        $this->setup();
-
         $CreateItem = $this->composeEmail($to, $subject, $content, $bodytype, $saveinsent, $markasread, $attachments, $cc, $bcc);
 
         if ($attachments && is_array($attachments)) {
             $this->makeMessageAsDraft($CreateItem);
         }
 
-        $response = $this->client->CreateItem($CreateItem);
-
-        if (!$this->success($response,"CreateItem")) {
-            $this->lastError = $response->ResponseMessages->CreateItemResponseMessage->ResponseCode;
-            $this->teardown();
+        $response = $this->exchangeService->CreateItem($CreateItem);
+        if(!$response->success()){
+            $this->lastError = $response->getError();
             return false;
         }
 
-        if ($attachments && $this->success($response, "CreateItem")) {
-            $itemId = $response->ResponseMessages->CreateItemResponseMessage->Items->Message->ItemId->Id;
-            $itemChangeKey  = $response->ResponseMessages->CreateItemResponseMessage->Items->Message->ItemId->ChangeKey;
+        if ($attachments && $response->success()) {
+            $itemId = $response->getItemId();
+            $itemChangeKey  = $response->getChangeKey();
 
             foreach ($attachments as $attachment) {
                 if (!file_exists($attachment)) {

@@ -34,11 +34,16 @@ class ExchangeService implements ExchangeServiceInterface
 		$this->teardown();
 	}
 
+	/**
+	 * @param $CreateItem
+	 * @return ResponseMessage
+	 */
 	public function CreateItem($CreateItem)
 	{
 		$response = $this->client->CreateItem($CreateItem);
 		$this->teardown();
-		
+
+		return new ResponseMessage($response->ResponseMessages->CreateItemResponseMessage);
 		
 	}
 

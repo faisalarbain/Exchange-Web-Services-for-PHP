@@ -7,6 +7,10 @@ namespace ExchangeClient;
 interface ExchangeServiceInterface
 {
 
+	/**
+	 * @param $CreateItem
+	 * @return ResponseMessage
+	 */
 	public function CreateItem($CreateItem);
 
 	public function FindItem($FindItem);

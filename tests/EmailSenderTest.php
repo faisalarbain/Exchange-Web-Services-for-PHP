@@ -139,7 +139,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @test
-	 * @group smoke
+	 * @group wip
 	 */
 	public function can_send_file_with_attachment()
 	{

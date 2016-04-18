@@ -139,7 +139,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @test
-	 * @group wip
+	 * @group integration
 	 */
 	public function can_send_file_with_attachment()
 	{
@@ -148,24 +148,28 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 			__DIR__ . '/sample2.txt',
 		];
 
-		$client = $this->makeClient();
+		$mock = \Mockery::mock(\ExchangeClient\ExchangeServiceInterface::class);
+		$client = $this->makeClient($mock);
 		$success = $client->send_message([getenv('TEST_EMAIL')], "test send email with attachment", "hello world", 'Text', false,true, $attachments);
 		$this->assertTrue($success);
 	}
 
-
-	/**
-	 * @return \ExchangeClient\ExchangeClient
-	 */
-	private function makeClient()
-	{
+	private function makeLiveService(){
 		$user = getenv('USERNAME');
 		$pass = getenv('PASSWORD');
 		$wsdl = getenv('WSDL');
 
-
-		$client = new \ExchangeClient\ExchangeClient(new \ExchangeClient\ExchangeService($user, $pass, $wsdl));
-		return $client;
+		return new \ExchangeClient\ExchangeService($user, $pass, $wsdl);
+	}
+	/**
+	 * @return \ExchangeClient\ExchangeClient
+	 */
+	private function makeClient(\ExchangeClient\ExchangeServiceInterface $exchangeService = NULL)
+	{
+		if(!$exchangeService){
+			$exchangeService = $this->makeLiveService();
+		}
+		return new \ExchangeClient\ExchangeClient($exchangeService);
 	}
 
 	private function assertPublicFieldsEquals($mail, $mail2) {

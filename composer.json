@@ -12,6 +12,7 @@
     	}
   },
     "require-dev": {
-        "vlucas/phpdotenv": "^2.2"
+        "vlucas/phpdotenv": "^2.2",
+        "mockery/mockery": "^0.9.4"
     }
 }

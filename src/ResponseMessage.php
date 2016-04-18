@@ -4,7 +4,7 @@
 namespace ExchangeClient;
 
 
-class ResponseMessage
+class ResponseMessage implements ReponseMessageInterface
 {
 	protected $payload;
 
@@ -17,7 +17,6 @@ class ResponseMessage
 	}
 
 	public function success() {
-		//print_r(sprintf("\nItemId : %s , ChangeKey : %s \n", $this->getItemId(), $this->getChangeKey()));
 		return $this->payload->ResponseCode == "NoError";
 	}
 

@@ -3,7 +3,7 @@
 
 use ExchangeClient\Client;
 use ExchangeClient\Email;
-use ExchangeClient\ReponseMessageInterface;
+use ExchangeClient\ResponseMessageInterface;
 
 class EmailSenderTest extends PHPUnit_Framework_TestCase
 {
@@ -29,6 +29,27 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$service2 = $this->makeMockService();
 		$this->makeClient($service2)->send(
 			Email::compose()
+				->to("john@email.com")
+				->subject("composed email")
+				->body("hello world")
+		);
+
+		$this->assertEquals($service1->getJobs(), $service2->getJobs());
+	}
+
+	/**
+	 * @test
+	 * @group wip
+	 */
+	public function delegate_is_from_email()
+	{
+		$service1 = $this->makeMockService();
+		$this->makeClient($service1)->setDelegate("jane@email.com")->send_message("john@email.com","composed email", "hello world");
+
+		$service2 = $this->makeMockService();
+		$this->makeClient($service2)->send(
+			Email::compose()
+				->from("jane@email.com")
 				->to("john@email.com")
 				->subject("composed email")
 				->body("hello world")
@@ -112,10 +133,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($service1->getJobs(), $service2->getJobs());
 	}
 
-	/**
-	 * @test
-	 * @group wip
-	 */
+	/** @test */
 	public function can_send_email_with_attachment()
 	{
 		$email_address = "john@email.com";
@@ -145,9 +163,11 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	 */
 	public function can_send_composed_email()
 	{
-		$mail = Email::compose();
-		$mail->to(getenv('TEST_EMAIL'))->subject("send composed email")->body("hello from composed email");
-		$client = $this->makeClient();
+		$mail = Email::compose()
+			->to(getenv('TEST_EMAIL'))
+			->subject("send composed email")
+			->body("hello from composed email");
+		$client = $this->makeClient($this->makeLiveService());
 		$client->send($mail);
 
 	}
@@ -250,7 +270,7 @@ MSG;
 
 }
 
-class DummySuccessResponseMessage implements ReponseMessageInterface{
+class DummySuccessResponseMessage implements ResponseMessageInterface{
 	protected $itemId = 0;
 	protected $changeKey = 0;
 
@@ -278,7 +298,7 @@ class DummySuccessResponseMessage implements ReponseMessageInterface{
 
 class MockExchangeService implements \ExchangeClient\ExchangeServiceInterface{
 	/**
-	 * @var \ExchangeClient\ReponseMessageInterface
+	 * @var \ExchangeClient\ResponseMessageInterface
 	 */
 	protected  $response;
 	protected  $jobs = [];

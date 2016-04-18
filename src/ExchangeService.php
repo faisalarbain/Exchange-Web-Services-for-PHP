@@ -34,32 +34,35 @@ class ExchangeService implements ExchangeServiceInterface
 		$this->teardown();
 	}
 
+	private function execute($action, $payload){
+		$response =  $this->client->$action($payload);
+		$this->teardown();
+		$resp = new ResponseMessage($response->ResponseMessages->{"{$action}ResponseMessage"});
+
+		if(!$resp->success()){
+			throw new ResponseMessageException($resp);
+		}
+
+		return $resp;
+	}
+
 	/**
 	 * @param $CreateItem
 	 * @return ResponseMessage
 	 */
 	public function CreateItem($CreateItem)
 	{
-		$response = $this->client->CreateItem($CreateItem);
-		$this->teardown();
-
-		return new ResponseMessage($response->ResponseMessages->CreateItemResponseMessage);
-		
+		return $this->execute("CreateItem", $CreateItem);
 	}
 
 	public function CreateAttachment($CreateAttachment)
 	{
-		$response =  $this->client->CreateAttachment($CreateAttachment);
-		$this->teardown();
-		return new ResponseMessage($response->ResponseMessages->CreateAttachmentResponseMessage);
+		return $this->execute("CreateAttachment", $CreateAttachment);
 	}
 
 	public function SendItem($CreateItem)
 	{
-		$response = $this->client->SendItem($CreateItem);
-		$this->teardown();
-
-		return new ResponseMessage($response->ResponseMessages->SendItemResponseMessage);
+		return $this->execute("SendItem", $CreateItem);
 	}
 
 	public function FindItem($FindItem)

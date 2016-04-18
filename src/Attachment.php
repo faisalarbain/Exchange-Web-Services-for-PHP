@@ -48,7 +48,7 @@ class Attachment
 		$this->ParentItemId = new ItemId($itemId, $itemChangeKey);
 	}
 
-	public static function make($attachment, ReponseMessageInterface $resp) {
+	public static function make($attachment, ResponseMessageInterface $resp) {
 		return new self($attachment, $resp->getItemId(), $resp->getChangeKey());
 	}
 }

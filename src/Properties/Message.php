@@ -36,4 +36,8 @@ class Message
 		return new self('', '');
 	}
 
+	public function setFrom($email) {
+		$this->From = Property::Mailbox(Property::EmailAddress($email));
+	}
+
 }

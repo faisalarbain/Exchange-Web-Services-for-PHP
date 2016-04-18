@@ -105,6 +105,11 @@ class Email
 
 		return $CreateItem;
 	}
+
+	public function from($email) {
+		$this->Items->Message->setFrom($email);
+		return $this;
+	}
 }
 
 

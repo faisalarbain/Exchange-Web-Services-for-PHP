@@ -43,8 +43,6 @@ class ExchangeClient
      */
     public function create_event($subject, $start, $end, $location, $isallday = false)
     {
-        $this->connect();
-        $this->setup();
 
         $CreateItem->SendMeetingInvitations = "SendToNone";
         $CreateItem->SavedItemFolderId->DistinguishedFolderId->Id = "calendar";
@@ -60,7 +58,6 @@ class ExchangeClient
 
         $response = $this->client->CreateItem($CreateItem);
 
-        $this->teardown();
 
         if ($response->ResponseMessages->CreateItemResponseMessage->ResponseCode == "NoError") {
             return true;
@@ -72,8 +69,6 @@ class ExchangeClient
 
     public function get_events($start, $end)
     {
-        $this->connect();
-        $this->setup();
 
         $FindItem->Traversal = "Shallow";
         $FindItem->ItemShape->BaseShape = "IdOnly";
@@ -153,7 +148,6 @@ class ExchangeClient
             $events[] = $newevent;
         }
 
-        $this->teardown();
 
         return $events;
     }
@@ -170,8 +164,6 @@ class ExchangeClient
      */
     public function get_messages($limit = 50, $onlyunread = false, $folder = "inbox", $folderIdIsDistinguishedFolderId = true)
     {
-        $this->connect();
-        $this->setup();
 
         $FindItem = new stdClass();
         $FindItem->Traversal = "Shallow";
@@ -296,7 +288,6 @@ class ExchangeClient
             }
         }
 
-        $this->teardown();
 
         return $messages;
     }
@@ -335,7 +326,7 @@ class ExchangeClient
      * @param mixed $bcc (the email address or an array of email address of recipients to receive a blind carbon copy (Bcc) of the e-mail message)
      * @return bool $success. (True if the message was sent, false if there was an error).
      */
-    public function send_message($to, $subject, $content, $bodytype = "Text", $saveinsent = true, $markasread = true, $attachments = false, $cc = false, $bcc = false)
+    public function send_message($to, $subject, $content, $bodytype = "Text", $saveinsent = true, $markasread = true, $attachments = false, $cc = false, $bcc = false, $delegate = null)
     {
         $CreateItem = $this->composeEmail($to, $subject, $content, $bodytype, $saveinsent, $markasread, $attachments, $cc, $bcc);
 
@@ -393,15 +384,12 @@ class ExchangeClient
      */
     public function delete_message($ItemId, $deletetype = "HardDelete")
     {
-        $this->connect();
-        $this->setup();
 
         $DeleteItem->DeleteType = $deletetype;
         $DeleteItem->ItemIds->ItemId = $ItemId;
 
         $response = $this->client->DeleteItem($DeleteItem);
 
-        $this->teardown();
 
         if ($response->ResponseMessages->DeleteItemResponseMessage->ResponseCode == "NoError") {
             return true;
@@ -420,8 +408,6 @@ class ExchangeClient
      */
     public function move_message($ItemId, $FolderId)
     {
-        $this->connect();
-        $this->setup();
 
         $MoveItem = new stdClass();
         $MoveItem->ToFolderId = new stdClass();
@@ -462,8 +448,6 @@ class ExchangeClient
      */
     public function get_subfolders($ParentFolderId = "inbox", $Distinguished = true)
     {
-        $this->connect();
-        $this->setup();
 
         $FolderItem = new stdClass();
         $FolderItem->FolderShape = new stdClass();
@@ -502,24 +486,9 @@ class ExchangeClient
         }
     }
 
-    /**
-     * Sets up stream handling. Internally used.
-     *
-     * @access private
-     * @return void
-     */
-    private function setup()
-    {
-        //already setup
-    }
-
-    private function teardown()
-    {
-       
-    }
-    private function connect()
-    {
-        
+    public function setDelegate($delegate){
+        $this->delegate = $delegate;
+        return $this;
     }
     /**
      * @param $to
@@ -536,6 +505,7 @@ class ExchangeClient
     public function composeEmail($to, $subject, $content, $bodytype = "Text", $saveinsent = true, $markasread = true, $attachments = false, $cc = false, $bcc = false)
     {
         $CreateItem = Email::compose();
+
 
 	    $this->SaveItemToFolder($CreateItem, $saveinsent);
 
@@ -590,7 +560,7 @@ class ExchangeClient
         }
 
         if ($this->delegate != null) {
-            $CreateItem->Items->Message->From->Mailbox->EmailAddress = $this->delegate;
+            $CreateItem->Items->Message->From = (object) ['Mailbox' => (object) ['EmailAddress' => $this->delegate]];
             return $CreateItem;
         }
         return $CreateItem;
@@ -602,7 +572,7 @@ class ExchangeClient
             foreach($mail->getAttachments() as $attachment){
                 if(!file_exists($attachment))
                     continue;
-                
+
                 $resp = $this->exchangeService->CreateAttachment(Attachment::make($attachment, $resp));
             }
             return $this->exchangeService->SendItem($mail->getSendItem($resp->getItemId(), $resp->getChangeKey()));
@@ -677,15 +647,6 @@ class ExchangeClient
 		$CreateAttachment->ParentItemId->Id = $itemId;
 		$CreateAttachment->ParentItemId->ChangeKey = $itemChangeKey;
 		return $CreateAttachment;
-	}
-
-	/**
-	 * @param $response
-	 * @return bool
-	 */
-	private function success($response, $action)
-	{
-		return $response->ResponseMessages->{ $action . 'ResponseMessage' }->ResponseCode == "NoError";
 	}
 
     /**

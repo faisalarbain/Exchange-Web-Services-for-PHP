@@ -4,7 +4,7 @@
 namespace ExchangeClient;
 
 
-class ResponseMessage implements ReponseMessageInterface
+class ResponseMessage implements ResponseMessageInterface
 {
 	protected $payload;
 

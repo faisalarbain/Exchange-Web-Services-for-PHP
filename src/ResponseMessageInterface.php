@@ -4,7 +4,7 @@
 namespace ExchangeClient;
 
 
-interface ReponseMessageInterface
+interface ResponseMessageInterface
 {
 
 	public function success();

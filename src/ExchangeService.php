@@ -49,12 +49,17 @@ class ExchangeService implements ExchangeServiceInterface
 
 	public function CreateAttachment($CreateAttachment)
 	{
-		return $this->client->CreateAttachment($CreateAttachment);
+		$response =  $this->client->CreateAttachment($CreateAttachment);
+		$this->teardown();
+		return new ResponseMessage($response->ResponseMessages->CreateAttachmentResponseMessage);
 	}
 
 	public function SendItem($CreateItem)
 	{
-		return $this->client->SendItem($CreateItem);
+		$response = $this->client->SendItem($CreateItem);
+		$this->teardown();
+
+		return new ResponseMessage($response->ResponseMessages->SendItemResponseMessage);
 	}
 
 	public function FindItem($FindItem)

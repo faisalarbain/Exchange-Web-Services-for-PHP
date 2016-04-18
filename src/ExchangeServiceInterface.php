@@ -19,8 +19,16 @@ interface ExchangeServiceInterface
 
 	public function GetAttachment($GetAttachment);
 
+	/**
+	 * @param $CreateAttachment
+	 * @return ResponseMessage
+	 */
 	public function CreateAttachment($CreateAttachment);
 
+	/**
+	 * @param $CreateItem
+	 * @return ResponseMessage
+	 */
 	public function SendItem($CreateItem);
 
 	public function DeleteItem($DeleteItem);

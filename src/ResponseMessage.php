@@ -6,7 +6,7 @@ namespace ExchangeClient;
 
 class ResponseMessage
 {
-	private $payload;
+	protected $payload;
 
 	/**
 	 * ResponseMessage constructor.
@@ -17,6 +17,7 @@ class ResponseMessage
 	}
 
 	public function success() {
+		//print_r(sprintf("\nItemId : %s , ChangeKey : %s \n", $this->getItemId(), $this->getChangeKey()));
 		return $this->payload->ResponseCode == "NoError";
 	}
 
@@ -25,10 +26,22 @@ class ResponseMessage
 	}
 
 	public function getItemId() {
-		return $this->payload->Items->Message->ItemId->Id;
+		if(!isset($this->payload->Attachments)){
+			return $this->payload->Items->Message->ItemId->Id;
+		}else{
+			return $this->payload->Attachments->FileAttachment->AttachmentId->RootItemId;
+		}
 	}
 
 	public function getChangeKey() {
-		return $this->payload->Items->Message->ItemId->ChangeKey;
+		if(!isset($this->payload->Attachments)){
+			return $this->payload->Items->Message->ItemId->ChangeKey;
+		}else{
+			return $this->payload->Attachments->FileAttachment->AttachmentId->RootItemChangeKey;
+		}
+	}
+
+	public function getRaw() {
+		return $this->payload;
 	}
 }

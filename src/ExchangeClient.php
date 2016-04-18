@@ -26,7 +26,7 @@ class ExchangeClient
     public function __construct(ExchangeServiceInterface $exchangeService, $delegate = null)
     {
         $this->exchangeService = $exchangeService;
-        $this->client = $this->exchangeService->client;
+        //$this->client = $this->exchangeService->client;
         $this->delegate = $delegate;
     }
 
@@ -358,40 +358,27 @@ class ExchangeClient
                     continue;
                 }
 
-	            $CreateAttachment = $this->makeAttachment($attachment, $itemId, $itemChangeKey);
-                $response = $this->client->CreateAttachment($CreateAttachment);
+                $CreateAttachment = $this->makeAttachment($attachment, $itemId, $itemChangeKey);
+                $response = $this->exchangeService->CreateAttachment($CreateAttachment);
 
-                if (!$this->success($response, 'CreateAttachment')) {
-                    $this->lastError = $response->ResponseMessages->CreateAttachmentResponseMessage->ResponseCode;
+                if (!$response->success()) {
+                    $this->lastError = $response->getError();
                     return false;
                 }
-
-                $itemId = $response->ResponseMessages->CreateAttachmentResponseMessage->Attachments->FileAttachment->AttachmentId->RootItemId;
-                $itemChangeKey = $response->ResponseMessages->CreateAttachmentResponseMessage->Attachments->FileAttachment->AttachmentId->RootItemChangeKey;
+                
+                $itemId = $response->getItemId();
+                $itemChangeKey = $response->getChangeKey();
             }
 
-            $CreateItem = (object)[
-                "ItemIds" => (object)[
-                    "ItemId" => (object)[
-                        "Id" => '',
-                        "ChangeKey" => '',
-                    ]
-                ],
-            ];
+            $sendItem = $this->makeSendItemPayload($itemId, $itemChangeKey);
+			$this->SaveItemToFolder($sendItem, $saveinsent);
+			$response = $this->exchangeService->SendItem($sendItem);
 
-            $CreateItem->ItemIds->ItemId->Id = $itemId;
-            $CreateItem->ItemIds->ItemId->ChangeKey = $itemChangeKey;
-			$this->SaveItemToFolder($CreateItem, $saveinsent);
-			$response = $this->client->SendItem($CreateItem);
-
-            if (!$this->success($response, 'SendItem')) {
-                $this->lastError = $response->ResponseMessages->SendItemResponseMessage->ResponseCode;
-                $this->teardown();
+            if (!$response->success()) {
+                $this->lastError = $response->getError();
                 return false;
             }
         }
-
-        $this->teardown();
 
         return true;
     }
@@ -691,4 +678,25 @@ class ExchangeClient
 	{
 		return $response->ResponseMessages->{ $action . 'ResponseMessage' }->ResponseCode == "NoError";
 	}
+
+    /**
+     * @param $itemId
+     * @param $itemChangeKey
+     * @return object
+     */
+    private function makeSendItemPayload($itemId, $itemChangeKey)
+    {
+        $CreateItem = (object)[
+            "ItemIds" => (object)[
+                "ItemId" => (object)[
+                    "Id" => '',
+                    "ChangeKey" => '',
+                ]
+            ],
+        ];
+
+        $CreateItem->ItemIds->ItemId->Id = $itemId;
+        $CreateItem->ItemIds->ItemId->ChangeKey = $itemChangeKey;
+        return $CreateItem;
+    }
 }

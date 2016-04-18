@@ -144,7 +144,8 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	public function can_send_file_with_attachment()
 	{
 		$attachments = [
-			__DIR__ . '/sample.txt'
+			__DIR__ . '/sample.txt',
+			__DIR__ . '/sample2.txt',
 		];
 
 		$client = $this->makeClient();

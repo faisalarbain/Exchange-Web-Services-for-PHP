@@ -121,12 +121,16 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 		$email_address = "john@email.com";
 
 		$service1 = $this->makeMockService();
-		$this->makeClient($service1)->send_message($email_address, "send with attachment", "hello world", "Text", true, true, [__DIR__ . '/sample.txt', __DIR__ . '/sample2.txt']);
+		$attachments = [__DIR__ . '/sample.xlsx', __DIR__ . '/sample.xls', __DIR__ . '/missing.txt', __DIR__ . '/sample.txt', __DIR__ . '/sample2.txt'];
+
+		$this->makeClient($service1)->send_message($email_address, "send with attachment", "hello world", "Text", true, true, $attachments);
 
 		$mail = Email::compose()
 			->to($email_address)
 			->subject("send with attachment")
 			->body("hello world")
+			->attach([__DIR__ . '/missing.txt', __DIR__ . '/sample.xlsx'])
+			->attach(__DIR__ . '/sample.xls')
 			->attach(__DIR__ . '/sample.txt')
 			->attach(__DIR__ . '/sample2.txt');
 		$service2 = $this->makeMockService();

@@ -600,6 +600,9 @@ class ExchangeClient
         if($mail->hasAttachment()){
             $resp = $this->exchangeService->CreateItem($mail->getDraft());
             foreach($mail->getAttachments() as $attachment){
+                if(!file_exists($attachment))
+                    continue;
+                
                 $resp = $this->exchangeService->CreateAttachment(Attachment::make($attachment, $resp));
             }
             return $this->exchangeService->SendItem($mail->getSendItem($resp->getItemId(), $resp->getChangeKey()));

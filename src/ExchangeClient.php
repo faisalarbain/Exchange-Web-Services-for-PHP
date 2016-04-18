@@ -597,9 +597,7 @@ class ExchangeClient
     }
 
     public function send(Email $mail) {
-        $this->connect();
-        $this->setup();
-        return $this->client->CreateItem($mail);
+        return $this->exchangeService->CreateItem($mail);
     }
 
     /**

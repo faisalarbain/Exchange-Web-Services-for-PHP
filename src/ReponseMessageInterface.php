@@ -15,5 +15,4 @@ interface ReponseMessageInterface
 
 	public function getChangeKey();
 
-	public function getRaw();
 }

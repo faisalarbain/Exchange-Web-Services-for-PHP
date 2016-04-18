@@ -3,6 +3,7 @@
 
 use ExchangeClient\Client;
 use ExchangeClient\Email;
+use ExchangeClient\ReponseMessageInterface;
 
 class EmailSenderTest extends PHPUnit_Framework_TestCase
 {
@@ -20,47 +21,58 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	}
 
 	/** @test */
-	public function can_compose_email()
+	public function can_compose_email_for_single_recipient_same_as_legacy_send_message()
 	{
-		$client = $this->makeClient();
-		$mail = $client->composeEmail("john@email.com","composed email", "hello world");
-		$mail2 = Email::compose();
-		$mail2->to("john@email.com")->subject("composed email")->body("hello world");
-		$this->assertPublicFieldsEquals($mail, $mail2);
-		$this->assertEquals(Email::SEND_AND_SAVE_COPY, $mail2->MessageDisposition);
+		$service1 = $this->makeMockService();
+		$this->makeClient($service1)->send_message("john@email.com","composed email", "hello world");
+
+		$service2 = $this->makeMockService();
+		$this->makeClient($service2)->send(
+			Email::compose()
+				->to("john@email.com")
+				->subject("composed email")
+				->body("hello world")
+		);
+
+		$this->assertEquals($service1->getJobs(), $service2->getJobs());
 	}
 
 	/** @test */
-	public function can_compose_email_2()
+	public function can_compose_email_multiple_recipients()
 	{
-		$client = $this->makeClient();
-		$mail = $client->composeEmail(["john@email.com", "jane@email.com"],"composed email", "hello world");
-		$mail2 = Email::compose();
-		$mail2->to(["john@email.com", "jane@email.com"])->subject("composed email")->body("hello world");
+		$service1 = $this->makeMockService();
+		$this->makeClient($service1)->send(
+			Email::compose()
+				->to("john@email.com")
+				->to("jane@email.com")
+				->subject("composed email")
+				->body("hello world")
+		);
 
-		$this->assertPublicFieldsEquals($mail, $mail2);
+		$service2 = $this->makeMockService();
+		$this->makeClient($service2)->send(
+			Email::compose()
+				->to(["john@email.com", "jane@email.com"])
+				->subject("composed email")
+				->body("hello world")
+		);
+
+		$this->assertEquals($service1->getJobs(), $service2->getJobs());
 	}
 
 	/** @test */
-	public function can_compose_email_3()
+	public function can_compose_email_multiple_recipients_2()
 	{
-		$client = $this->makeClient();
-		$mail = $client->composeEmail(["john@email.com", "jane@email.com"],"composed email", "hello world");
+		$service1 = $this->makeMockService();
+		$this->makeClient($service1)->send_message(["john@email.com", "jane@email.com","foo@email.com"],"composed email", "hello world");
 
-		$mail3 = Email::compose();
-		$mail3->to("john@email.com")->to("jane@email.com")->subject("composed email")->body("hello world");
-		$this->assertPublicFieldsEquals($mail, $mail3);
-	}
+		$mail = Email::compose();
+		$mail->to("john@email.com")->to("jane@email.com")->to("foo@email.com")->subject("composed email")->body("hello world");
 
-	/** @test */
-	public function can_compose_email_4()
-	{
-		$client = $this->makeClient();
-		$mail = $client->composeEmail(["john@email.com", "jane@email.com","foo@email.com"],"composed email", "hello world");
+		$service2 = $this->makeMockService();
+		$this->makeClient($service2)->send($mail);
 
-		$mail3 = Email::compose();
-		$mail3->to("john@email.com")->to("jane@email.com")->to("foo@email.com")->subject("composed email")->body("hello world");
-		$this->assertPublicFieldsEquals($mail, $mail3);
+		$this->assertEquals($service1->getJobs(), $service2->getJobs());
 	}
 
 	/** @test */
@@ -81,20 +93,23 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 	}
 
 	/** @test */
-	public function can_compose_email_with_cc_and_bcc_2()
+	public function can_compose_email_with_multiple_cc_and_bcc()
 	{
-		$client = $this->makeClient();
+		$service1 = $this->makeMockService();
+		$client = $this->makeClient($service1);
 		$cc = ["jane@email.com", "jane2@email.com"];
 		$bcc = ["june@email.com","june2@email.com", "june3@email.com"];
-		$mail = $client->composeEmail("john@email.com","composed email", "hello world", 'Text',true,true,false, $cc, $bcc);
+		$client->send_message("john@email.com","composed email", "hello world", 'Text',true,true,false, $cc, $bcc);
 
-		$mail2 = Email::compose();
-		$mail2->to("john@email.com")
+		$mail = Email::compose()->to("john@email.com")
 			->subject("composed email")
 			->body("hello world")
 			->cc($cc)->bcc($bcc);
 
-		$this->assertPublicFieldsEquals($mail, $mail2);
+		$service2 = $this->makeMockService();
+		$this->makeClient($service2)->send($mail);
+
+		$this->assertEquals($service1->getJobs(), $service2->getJobs());
 	}
 
 	/**
@@ -161,13 +176,15 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 		return new \ExchangeClient\ExchangeService($user, $pass, $wsdl);
 	}
+
 	/**
+	 * @param \ExchangeClient\ExchangeServiceInterface $exchangeService
 	 * @return \ExchangeClient\ExchangeClient
 	 */
 	private function makeClient(\ExchangeClient\ExchangeServiceInterface $exchangeService = NULL)
 	{
 		if(!$exchangeService){
-			$exchangeService = $this->makeLiveService();
+			$exchangeService = $this->makeMockService();
 		}
 		return new \ExchangeClient\ExchangeClient($exchangeService);
 	}
@@ -201,5 +218,119 @@ MSG;
 
 	}
 
+	private function makeMockService() {
+		return new MockExchangeService();
+	}
 
+
+}
+
+class DummySuccessResponseMessage implements ReponseMessageInterface{
+	protected $itemId = 0;
+	protected $changeKey = 0;
+
+	public function success()
+	{
+		return true;
+	}
+
+	public function getError()
+	{
+		return null;
+	}
+
+	public function getItemId()
+	{
+		return $this->itemId++;
+	}
+
+	public function getChangeKey()
+	{
+		return $this->changeKey++;
+	}
+}
+
+
+class MockExchangeService implements \ExchangeClient\ExchangeServiceInterface{
+	/**
+	 * @var \ExchangeClient\ReponseMessageInterface
+	 */
+	protected  $response;
+	protected  $jobs = [];
+	/**
+	 * MockExchangeService constructor.
+	 */
+	public function __construct() {
+		$this->response = new DummySuccessResponseMessage();
+	}
+
+	public function getJobs(){
+		return $this->jobs;
+	}
+	/**
+	 * @param $CreateItem
+	 * @return \ExchangeClient\ResponseMessage
+	 */
+	public function CreateItem($CreateItem)
+	{
+		$this->storeSentJob($CreateItem, "CreateItem");
+		return $this->response;
+	}
+
+	public function FindItem($FindItem)
+	{
+		// TODO: Implement FindItem() method.
+	}
+
+	public function GetItem($GetItem)
+	{
+		// TODO: Implement GetItem() method.
+	}
+
+	public function GetAttachment($GetAttachment)
+	{
+		// TODO: Implement GetAttachment() method.
+	}
+
+	/**
+	 * @param $CreateAttachment
+	 * @return \ExchangeClient\ResponseMessage
+	 */
+	public function CreateAttachment($CreateAttachment)
+	{
+		// TODO: Implement CreateAttachment() method.
+	}
+
+	/**
+	 * @param $CreateItem
+	 * @return \ExchangeClient\ResponseMessage
+	 */
+	public function SendItem($CreateItem)
+	{
+		// TODO: Implement SendItem() method.
+	}
+
+	public function DeleteItem($DeleteItem)
+	{
+		// TODO: Implement DeleteItem() method.
+	}
+
+	public function MoveItem($MoveItem)
+	{
+		// TODO: Implement MoveItem() method.
+	}
+
+	public function FindFolder($FolderItem)
+	{
+		// TODO: Implement FindFolder() method.
+	}
+
+	/**
+	 * @param $CreateItem
+	 * @param $type
+	 */
+	private function storeSentJob($CreateItem, $type)
+	{
+		$this->jobs[] = ["type" => $type, json_decode(json_encode($CreateItem))];
+	}
 }

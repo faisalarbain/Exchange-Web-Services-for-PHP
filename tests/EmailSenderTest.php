@@ -114,6 +114,29 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @test
+	 * @group wip
+	 */
+	public function can_send_email_with_attachment()
+	{
+		$email_address = "john@email.com";
+
+		$service1 = $this->makeMockService();
+		$this->makeClient($service1)->send_message($email_address, "send with attachment", "hello world", "Text", true, true, [__DIR__ . '/sample.txt', __DIR__ . '/sample2.txt']);
+
+		$mail = Email::compose()
+			->to($email_address)
+			->subject("send with attachment")
+			->body("hello world")
+			->attach(__DIR__ . '/sample.txt')
+			->attach(__DIR__ . '/sample2.txt');
+		$service2 = $this->makeMockService();
+		$this->makeClient($service2)->send($mail);
+
+		$this->assertEquals($service1->getJobs(), $service2->getJobs());
+	}
+
+	/**
+	 * @test
 	 * @group  integration
 	 */
 	public function can_send_composed_email()
@@ -222,7 +245,6 @@ MSG;
 		return new MockExchangeService();
 	}
 
-
 }
 
 class DummySuccessResponseMessage implements ReponseMessageInterface{
@@ -298,7 +320,8 @@ class MockExchangeService implements \ExchangeClient\ExchangeServiceInterface{
 	 */
 	public function CreateAttachment($CreateAttachment)
 	{
-		// TODO: Implement CreateAttachment() method.
+		$this->storeSentJob($CreateAttachment, "CreateAttachment");
+		return $this->response;
 	}
 
 	/**
@@ -307,7 +330,8 @@ class MockExchangeService implements \ExchangeClient\ExchangeServiceInterface{
 	 */
 	public function SendItem($CreateItem)
 	{
-		// TODO: Implement SendItem() method.
+		$this->storeSentJob($CreateItem, "SendItem");
+		return $this->response;
 	}
 
 	public function DeleteItem($DeleteItem)

@@ -43,4 +43,8 @@ class ResponseMessage implements ReponseMessageInterface
 	public function getRaw() {
 		return $this->payload;
 	}
+
+	public function getAttachments() {
+		
+	}
 }

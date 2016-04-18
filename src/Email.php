@@ -8,11 +8,14 @@ use ExchangeClient\Properties\Item;
 
 class Email
 {
+	private $attachments = [];
 	private $to = [];
 	private $cc = [];
 	private $bcc = [];
 
 	const SEND_AND_SAVE_COPY = 'SendAndSaveCopy';
+	const SAVE_ONLY = 'SaveOnly';
+
 	public $MessageDisposition;
 	public $SavedItemFolderId;
 	public $Items;
@@ -57,6 +60,50 @@ class Email
 		$this->Items->Message->setRecipeints($type, $this->$type);
 
 		return $this;
+	}
+
+	public function attach($attachment){
+		if(!is_array($attachment)){
+			$attachment = [$attachment];
+		}
+
+		$this->attachments = array_merge($this->attachments, $attachment);
+		return $this;
+	}
+
+	public function hasAttachment() {
+		return !empty($this->attachments);
+	}
+
+	public function getDraft() {
+		/** @var Email $clone */
+		$clone = clone $this;
+		$clone->MessageDisposition = self::SAVE_ONLY;
+		$clone->SavedItemFolderId = DistinguishedFolderId::Drafts();
+		$clone->SaveItemToFolder = false;
+		return $clone;
+	}
+
+	public function getAttachments() {
+		return $this->attachments;
+	}
+
+	public function getSendItem($itemId = 0, $itemChangeKey = 0) {
+		$CreateItem = (object)[
+			"ItemIds" => (object)[
+				"ItemId" => (object)[
+					"Id" => '',
+					"ChangeKey" => '',
+				]
+			],
+		];
+
+		$CreateItem->ItemIds->ItemId->Id = $itemId;
+		$CreateItem->ItemIds->ItemId->ChangeKey = $itemChangeKey;
+		$CreateItem->SaveItemToFolder = $this->SaveItemToFolder;
+		$CreateItem->SavedItemFolderId = $this->SavedItemFolderId;
+
+		return $CreateItem;
 	}
 }
 

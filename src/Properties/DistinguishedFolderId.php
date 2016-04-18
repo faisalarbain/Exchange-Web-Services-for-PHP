@@ -19,4 +19,8 @@ class DistinguishedFolderId
 	{
 		return self::get("sentitems");
 	}
+
+	public static function Drafts() {
+		return self::get('drafts');
+	}
 }

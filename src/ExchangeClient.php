@@ -597,7 +597,15 @@ class ExchangeClient
     }
 
     public function send(Email $mail) {
-        return $this->exchangeService->CreateItem($mail);
+        if($mail->hasAttachment()){
+            $resp = $this->exchangeService->CreateItem($mail->getDraft());
+            foreach($mail->getAttachments() as $attachment){
+                $resp = $this->exchangeService->CreateAttachment(Attachment::make($attachment, $resp));
+            }
+            return $this->exchangeService->SendItem($mail->getSendItem($resp->getItemId(), $resp->getChangeKey()));
+        }else{
+            return $this->exchangeService->CreateItem($mail);
+        }
     }
 
     /**

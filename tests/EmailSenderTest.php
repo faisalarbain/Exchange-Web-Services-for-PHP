@@ -186,8 +186,7 @@ class EmailSenderTest extends PHPUnit_Framework_TestCase
 			__DIR__ . '/sample2.txt',
 		];
 
-		$mock = \Mockery::mock(\ExchangeClient\ExchangeServiceInterface::class);
-		$client = $this->makeClient($mock);
+		$client = $this->makeClient($this->makeLiveService());
 		$success = $client->send_message([getenv('TEST_EMAIL')], "test send email with attachment", "hello world", 'Text', false,true, $attachments);
 		$this->assertTrue($success);
 	}

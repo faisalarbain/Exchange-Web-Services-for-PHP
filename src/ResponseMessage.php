@@ -39,12 +39,4 @@ class ResponseMessage implements ReponseMessageInterface
 			return $this->payload->Attachments->FileAttachment->AttachmentId->RootItemChangeKey;
 		}
 	}
-
-	public function getRaw() {
-		return $this->payload;
-	}
-
-	public function getAttachments() {
-		
-	}
 }

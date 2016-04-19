@@ -599,7 +599,7 @@ class ExchangeClient
 	{
 		if($save){
 			$CreateItem->SaveItemToFolder = true;
-			$CreateItem->SavedItemFolderId = DistinguishedFolderId::SendItems();
+			$CreateItem->SavedItemFolderId = DistinguishedFolderId::SentItems();
 		}else{
 			$CreateItem->SaveItemToFolder = false;
 			$CreateItem->MessageDisposition = "SendOnly";

@@ -15,7 +15,7 @@ class DistinguishedFolderId
 		return (object)['DistinguishedFolderId' => new self($id)];
 	}
 
-	public static function SendItems()
+	public static function SentItems()
 	{
 		return self::get("sentitems");
 	}

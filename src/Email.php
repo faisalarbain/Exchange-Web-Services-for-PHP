@@ -23,7 +23,7 @@ class Email
 
 	public function __construct() {
 		$this->MessageDisposition = self::SEND_AND_SAVE_COPY;
-		$this->SavedItemFolderId = DistinguishedFolderId::SendItems();
+		$this->SavedItemFolderId = DistinguishedFolderId::SentItems();
 		$this->Items = Item::blank();
 	}
 

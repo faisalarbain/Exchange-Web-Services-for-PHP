@@ -8,6 +8,8 @@ use ExchangeClient\Properties\Item;
 
 class Email
 {
+	const TEXT = "Text";
+	const HTML = "HTML";
 	private $attachments = [];
 	private $to = [];
 	private $cc = [];
@@ -36,7 +38,7 @@ class Email
 		return $this;
 	}
 
-	public function body($content, $type = 'Text'){
+	public function body($content, $type = self::TEXT){
 		$this->Items->Message->setBody($content, $type);
 		return $this;
 	}

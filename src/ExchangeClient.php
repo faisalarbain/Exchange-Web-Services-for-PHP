@@ -26,7 +26,7 @@ class ExchangeClient
     public function __construct(ExchangeServiceInterface $exchangeService, $delegate = null)
     {
         $this->exchangeService = $exchangeService;
-        //$this->client = $this->exchangeService->client;
+        $this->client = $this->exchangeService->client;
         $this->delegate = $delegate;
     }
 
